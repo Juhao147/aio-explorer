@@ -2833,7 +2833,11 @@ function loadSettings(data, excluded2, skipMigrate = false) {
     excluded: excluded2,
     folderSettings: /* @__PURE__ */ Object.create(null),
     showHidden: false,
-    showLoadNotice: true,
+    // aio-explorer 修复：启动通知默认【关闭】。
+    // 原来是 true（默认弹通知），每个新用户装好插件、重启 Obsidian 都会看到
+    // 右上角那张"Aio Explorer 已加载"卡片，第一印象就是"这插件好吵闹"。
+    // 现在默认不弹；想看的用户在「通用」里把「关闭启动通知」关掉即可。
+    showLoadNotice: false,
     dragSortEnabled: true,
     // 拖入按规则排序的文件夹时，是否自动切成自定义排序（默认关，保持原样落位）
     autoCustomOnDrop: false,
@@ -3480,7 +3484,10 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
               setting.addToggle(
                 // aio-explorer: toggle means "mute startup notice".
                 // ON => do NOT show notice => store showLoadNotice = false.
-                (toggle) => toggle.setValue(p.settings.showLoadNotice === false).onChange(async (value) => {
+                // aio-explorer 修复：判定从 `=== false` 改成 `!== true`。
+                // 数据里没有这个字段时（新用户、或极早期版本存档），旧写法会把
+                // 开关显示成"会弹通知"，与新的默认行为（不弹）自相矛盾。
+                (toggle) => toggle.setValue(p.settings.showLoadNotice !== true).onChange(async (value) => {
                   toggle.setDisabled(true);
                   try {
                     await p.saveSettings({ showLoadNotice: !value });
@@ -5013,7 +5020,13 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
           if (legacy) await adapter.write(path + "/sort-order.json", legacy.text);
         }
       },
-      this.attachmentRules()
+      // aio-explorer 修复：默认排除目录改为【空数组】。
+      // 原来这里传 this.attachmentRules()（当前库的 Obsidian 附件文件夹设置），
+      // 于是新用户装好插件，「排除的目录」里就预填了一条他自己库的附件目录名
+      // （例如附件文件夹设成 "000附件" 的库），观感就像"插件夹带了别人的设置"。
+      // 附件目录现在完全由用户自己决定：设置页「加入当前附件目录」按钮
+      // （renderExclusions 里调 attachmentRules()）随时能一键加进来。
+      []
     );
     this.settings = this.store.settings;
     try {
@@ -5036,7 +5049,11 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
     // 上下箭头 + 中间横线），并把按钮加入 onLayoutReady 的同步流程。
     this.registerNavIcons();
     console.debug("[Aio Explorer] loaded");
-    if (this.settings.showLoadNotice === true || this.settings.showLoadNotice === void 0) new import_obsidian4.Notice(this.t("loadedNotice"), 4e3);
+    // 启动通知：只有明确存了 true 才弹。
+    // aio-explorer 修复：原来 undefined 也弹（配合默认值 true），导致默认
+    // 不弹的改革对"数据里没这个字段的新用户"无效——他们照样看到通知。
+    // 现在默认值已是 false，这里同步把 undefined 归到"不弹"一边。
+    if (this.settings.showLoadNotice === true) new import_obsidian4.Notice(this.t("loadedNotice"), 4e3);
     this.settingsTab = new ExplorerSettingsTab(this.app, this);
     this.addSettingTab(this.settingsTab);
     // ===== aio-explorer：文件置顶 =====

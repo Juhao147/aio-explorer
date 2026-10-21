@@ -41,6 +41,13 @@ devices.
   standard emphasis weight and the recommended value, so folder names stand out
   without the list feeling heavy. Existing settings are migrated automatically
   (the old "on" becomes 700, exactly as before).
+- **Cleaner first run for new users.** Two defaults that used to leak the
+  author's own vault into a fresh install are gone: the excluded-directories
+  list no longer starts pre-filled with the vault's attachment folder (add it
+  any time with the *Add current attachment directory* button), and the startup
+  notice is off by default, so a newly installed plugin no longer pops a card
+  in the corner on the next restart. Both switches remain, with their previous
+  saved values untouched.
 
 ---
 
@@ -211,6 +218,7 @@ are preserved in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 - **修掉「非自定义排序文件夹里拖拽失灵」**：按创建/修改时间、按名称排序的文件夹，现在也用插件自己的拖拽（长按抬起、右侧手柄、位置选择器），不再掉回系统原生拖拽。把条目拖到别的文件夹始终可用；在同一个按规则排序的文件夹里换顺序会被明确拒绝并说明原因。新增设置「拖入时切换为自定义排序」（默认关）：打开后，把文件拖进按规则排序的文件夹会自动把该文件夹切成 Custom order，你选的位置算数。
 - **修掉「多彩文件夹颜色看着乱」**：七色循环（红→橙→黄→绿→青→蓝→紫）现在严格按文件夹在屏幕上的实际顺序发色号——每文件夹的排序模式、自定义手动顺序、置顶、隐藏全都算数。此前颜色按另一套排序规则编号，名字里数字、英文、中文混用时会整体错位。现在拖动、改名、置顶、隐藏、删除文件夹，颜色都会跟着位置顺移，循环始终完整。
 - **「文件夹字体加粗」从开关改成五档滑块**：原来一开就是写死的加粗（700），比 Obsidian 自己的标准强调（600）还重一档，不少用户觉得太粗。现在可以拖：400 不加粗、500 轻微、600 适中（推荐）、700 加粗、800 特粗。旧设置自动迁移（原来的"开"= 700，视觉不变），重置按钮一键回到推荐档 600。
+- **新用户首次安装更干净**：修掉两个"把作者自己的库带进新装插件"的默认值——①「排除的目录」不再预填当前库的附件文件夹（想加随时点「加入当前附件目录」按钮）；② 启动通知默认关闭，新用户装好插件重启后不再弹右上角提示卡片。两个开关都保留，已存档的值不受影响。
 
 ### 核心功能
 
