@@ -35,6 +35,12 @@ devices.
   Latin letters and CJK characters ended up out of sequence. Move, rename, pin,
   hide or delete a folder and the colors re-flow with it, keeping the
   red → orange → yellow → green → cyan → blue → purple cycle intact.
+- **Bold folder names are now adjustable.** What used to be an on/off switch
+  that jumped straight to `bold` (700) is now a five-step slider: 400 off,
+  500 subtle, 600 medium, 700 bold, 800 extra bold. 600 is Obsidian's own
+  standard emphasis weight and the recommended value, so folder names stand out
+  without the list feeling heavy. Existing settings are migrated automatically
+  (the old "on" becomes 700, exactly as before).
 
 ---
 
@@ -91,6 +97,8 @@ devices.
   their own size automatically, with no per-device setup.
 - **Long names wrap instead of disappearing.** Names that do not fit can wrap
   onto the next line, so nothing is silently truncated.
+- **Adjustable folder boldness.** A five-step slider from 400 (off) to 800
+  (extra bold); 600 is Obsidian's own emphasis weight and the recommended value.
 
 ### File count
 
@@ -202,6 +210,7 @@ are preserved in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 - 部分只在中文出现的报错提示，现在也按语言显示。
 - **修掉「非自定义排序文件夹里拖拽失灵」**：按创建/修改时间、按名称排序的文件夹，现在也用插件自己的拖拽（长按抬起、右侧手柄、位置选择器），不再掉回系统原生拖拽。把条目拖到别的文件夹始终可用；在同一个按规则排序的文件夹里换顺序会被明确拒绝并说明原因。新增设置「拖入时切换为自定义排序」（默认关）：打开后，把文件拖进按规则排序的文件夹会自动把该文件夹切成 Custom order，你选的位置算数。
 - **修掉「多彩文件夹颜色看着乱」**：七色循环（红→橙→黄→绿→青→蓝→紫）现在严格按文件夹在屏幕上的实际顺序发色号——每文件夹的排序模式、自定义手动顺序、置顶、隐藏全都算数。此前颜色按另一套排序规则编号，名字里数字、英文、中文混用时会整体错位。现在拖动、改名、置顶、隐藏、删除文件夹，颜色都会跟着位置顺移，循环始终完整。
+- **「文件夹字体加粗」从开关改成五档滑块**：原来一开就是写死的加粗（700），比 Obsidian 自己的标准强调（600）还重一档，不少用户觉得太粗。现在可以拖：400 不加粗、500 轻微、600 适中（推荐）、700 加粗、800 特粗。旧设置自动迁移（原来的"开"= 700，视觉不变），重置按钮一键回到推荐档 600。
 
 ### 核心功能
 
@@ -211,7 +220,7 @@ are preserved in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 **文件图标** —— 文件夹按七色循环上色，一眼看清结构。子文件夹可以选择**跟随父级颜色**：一级文件夹按七色循环，它下面所有层级的子文件夹都跟着同一个颜色，滚动时颜色不会乱跳。
 
-**标题调整** —— 文件树标题字号可**独立于正文字号**单独调整。长文件名可以换行显示，不会被静默截断。电脑端与手机端字号各自独立，但存在同一份设置文件里一起同步，手机上自动生效，无需分别设置。
+**标题调整** —— 文件树标题字号可**独立于正文字号**单独调整。长文件名可以换行显示，不会被静默截断。文件夹名称粗细五档可调（400 不加粗到 800 特粗，推荐 600）。电脑端与手机端字号各自独立，但存在同一份设置文件里一起同步，手机上自动生效，无需分别设置。
 
 **文件计数** —— 在文件树中显示每个文件夹下的元素数量，可选是否包含已展开的文件夹。
 

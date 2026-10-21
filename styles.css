@@ -1478,11 +1478,15 @@ body.qt-custom-icons .workspace-leaf-content[data-type="bookmarks"] svg.lucide-f
 /* ---- 文件夹字体加粗 ----
    核心 CSS 用 font-weight: var(--nav-item-weight) 渲染标题，
    悬停/选中态另有 --nav-item-weight-hover / --nav-item-weight-active，
-   三个一起改才不会出现「加粗了但悬停时变回去」的闪跳。 */
+   三个一起改才不会出现「加粗了但悬停时变回去」的闪跳。
+   2026-10-22：从写死的 bold(700) 改成读 --qt-folder-bold-weight，
+   由 JS 按滑块档位写进 body 的 inline style（400=不加粗=不打这个类）。
+   兜底值 600：万一变量没写进来，用 Obsidian 自己的标准强调档，
+   也不会比原来的 bold 更粗。 */
 body.qt-folder-bold .nav-folder-title {
-    --nav-item-weight-hover: bold;
-    --nav-item-weight-active: bold;
-    --nav-item-weight: bold;
+    --nav-item-weight-hover: var(--qt-folder-bold-weight, 600);
+    --nav-item-weight-active: var(--qt-folder-bold-weight, 600);
+    --nav-item-weight: var(--qt-folder-bold-weight, 600);
 }
 /* 双保险：上面只改变量，若用户环境里有规则直接写死 font-weight
    （例如某些 CSS 片段用 font-weight: 600 !important 强制标题字重），
@@ -1490,7 +1494,7 @@ body.qt-folder-bold .nav-folder-title {
    选择器多写一个 .tree-item-self 把 specificity 提到 (0,3,1)，
    足以压过常见的 body .nav-folder-title 类（(0,2,1)）直接声明。 */
 body.qt-folder-bold .tree-item-self.nav-folder-title {
-    font-weight: bold !important;
+    font-weight: var(--qt-folder-bold-weight, 600) !important;
 }
 
 
