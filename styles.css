@@ -1,0 +1,1581 @@
+.qt-explorer[data-qt-trigger="handle"] .tree-item-self.qt-sortable {
+  position: relative;
+  padding-inline-end: 28px;
+}
+.qt-handle {
+  position: absolute;
+  inset-inline-end: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  color: var(--text-faint);
+  opacity: 0;
+  cursor: grab;
+}
+.qt-handle svg {
+  width: 15px;
+  height: 15px;
+}
+.qt-explorer[data-qt-trigger="row"] .qt-sortable,
+.qt-explorer[data-qt-trigger="row"] .qt-sortable *,
+.qt-explorer[data-qt-trigger="handle"] .qt-handle,
+.qt-explorer[data-qt-trigger="handle"] .qt-handle * {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+.qt-explorer.qt-dragging .tree-item-self:not(.qt-inside) {
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  outline: none;
+  color: var(--nav-item-color, var(--text-muted));
+}
+.qt-explorer.qt-dragging
+  .tree-item-self:is(.is-active, .is-selected, .has-focus):not(.qt-inside)::before,
+.qt-explorer.qt-dragging
+  .tree-item-self:is(.is-active, .is-selected, .has-focus):not(.qt-inside)::after {
+  opacity: 0;
+}
+.qt-explorer.qt-dragging .qt-handle {
+  visibility: hidden;
+  pointer-events: none;
+}
+.qt-drag-surface {
+  position: fixed;
+  z-index: 9998;
+  background: transparent;
+  /* aio-explorer：必须让鼠标事件穿透，否则会挡住原生 HTML5 拖拽的启动
+     （浏览器无法在被覆盖的元素上发起 dragstart，导致拖到正文无法插入链接）。
+     它存在的唯一目的是阻止文本选中，已由 .qt-explorer.qt-dragging 的
+     user-select:none 实现，故设为 pointer-events:none。*/
+  pointer-events: none;
+}
+.qt-ghost-label[hidden] {
+  display: none;
+}
+.qt-settings .qt-section {
+  margin: 0 0 26px;
+}
+.qt-settings .qt-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.qt-settings .qt-section-header .setting-item-heading {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  flex: 0 1 auto;
+  margin: 0;
+}
+.qt-settings .qt-section-header .setting-item-info {
+  margin: 0;
+}
+.qt-settings .qt-section-header .setting-item-control {
+  display: none;
+}
+.qt-settings .qt-section-header .setting-item-name {
+  margin: 0;
+  font-size: var(--font-ui-small);
+  font-weight: 600;
+}
+.qt-settings .qt-help-toggle {
+  padding: 4px;
+  color: var(--text-faint);
+}
+.qt-settings .qt-help-toggle svg {
+  width: 14px;
+  height: 14px;
+}
+.qt-settings .qt-help {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  padding: 10px 12px 10px 30px;
+  margin: 0 0 12px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-s, 4px);
+  line-height: 1.6;
+}
+.qt-settings .qt-help[hidden] {
+  display: none;
+}
+.qt-settings .qt-help {
+  list-style: disc;
+  white-space: normal;
+}
+.qt-settings .qt-help li {
+  margin: 4px 0;
+}
+.qt-settings .qt-exclusions-field {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.qt-settings .setting-item.qt-language-field {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.qt-settings .qt-language-field > .setting-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.qt-settings .qt-language-field > .setting-item-control {
+  flex: 0 0 auto;
+  width: auto;
+}
+.qt-settings .qt-exclusions-field > .setting-item-control {
+  display: block;
+  width: 100%;
+}
+.qt-settings .qt-delay-value {
+  white-space: nowrap;
+  min-width: 56px;
+  font-variant-numeric: tabular-nums;
+}
+.qt-settings .qt-add-directory {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qt-settings .qt-add-directory input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+.qt-settings .qt-exclusion-list {
+  margin-bottom: 10px;
+}
+.qt-settings .qt-exclusion-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.qt-settings .qt-folder-icon {
+  display: flex;
+  color: var(--text-faint);
+}
+.qt-settings .qt-folder-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.qt-settings .qt-folder-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-ui-small);
+}
+.qt-settings .qt-empty {
+  font-size: var(--font-ui-small);
+  color: var(--text-faint);
+  margin: 0 0 12px;
+}
+.qt-settings .qt-text-button {
+  margin-top: 10px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+.qt-settings .qt-text-button:hover {
+  color: var(--text-accent);
+}
+.qt-explorer[data-qt-trigger="handle"] .qt-handle,
+.qt-handle:focus-visible {
+  opacity: 0.8;
+}
+.qt-handle:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+}
+
+.qt-explorer .qt-source {
+  opacity: 0.38;
+  background: var(--background-modifier-hover);
+}
+.qt-explorer .qt-inside {
+  box-shadow: inset 0 0 0 2px var(--interactive-accent);
+  background: var(--background-modifier-hover);
+  border-radius: 5px;
+}
+.qt-explorer.qt-dragging,
+.qt-explorer.qt-dragging *,
+.qt-drag-surface {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.qt-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10000;
+  pointer-events: none;
+  max-width: calc(100vw - 16px);
+  padding: 0;
+  color: var(--text-normal);
+  will-change: transform;
+}
+.qt-ghost-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 36px;
+  padding: 7px 10px;
+  box-sizing: border-box;
+  border: 1px solid var(--interactive-accent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--interactive-accent) 16%, var(--background-primary));
+  box-shadow:
+    0 8px 20px #0003,
+    0 2px 5px #0002;
+  animation: qt-pickup 170ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.qt-ghost-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-inline-start: 44px;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.4;
+}
+.qt-ghost-cancel kbd {
+  font: inherit;
+  padding: 0 4px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  background: var(--background-primary);
+  box-shadow: 0 1px 0 var(--background-modifier-border);
+}
+.qt-cancel-zone {
+  position: fixed;
+  z-index: 10002;
+  left: 16px;
+  right: 16px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-width: 360px;
+  margin: 0 auto;
+  min-height: 64px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 14px;
+  background: var(--background-primary);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  box-shadow: 0 4px 24px #0003;
+  pointer-events: none;
+}
+.qt-cancel-zone > span:first-child {
+  display: flex;
+}
+.qt-cancel-zone svg {
+  width: 18px;
+  height: 18px;
+}
+.qt-cancel-zone.is-active {
+  border: 2px solid var(--text-error);
+  color: var(--text-error);
+  background: color-mix(in srgb, var(--text-error) 12%, var(--background-primary));
+}
+.qt-ghost-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qt-ghost-grip,
+.qt-ghost-icon {
+  display: flex;
+  flex-shrink: 0;
+}
+.qt-ghost-grip {
+  color: var(--text-muted);
+}
+.qt-ghost-grip svg {
+  width: 12px;
+  height: 16px;
+}
+.qt-ghost-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.qt-ghost-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  line-height: 16px;
+  padding: 0 4px;
+  border: 1px solid color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+  border-radius: 3px;
+  color: var(--text-muted);
+}
+@keyframes qt-pickup {
+  from {
+    opacity: 0.55;
+    transform: translateY(3px) scale(0.96);
+    box-shadow: none;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.qt-ghost strong,
+.qt-ghost-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qt-ghost strong {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-ui-small);
+  font-weight: 600;
+}
+.qt-ghost-label {
+  margin-top: 4px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+.qt-drop-line {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 2px;
+  z-index: 9999;
+  pointer-events: none;
+  background: var(--interactive-accent);
+  border-radius: 2px;
+  transition: width 100ms ease-out;
+}
+.qt-drop-line::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  box-sizing: border-box;
+  border: 2px solid var(--interactive-accent);
+  border-radius: 50%;
+  background: var(--background-primary);
+}
+.qt-picker {
+  position: fixed;
+  z-index: 10001;
+  pointer-events: none;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 9px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: 0 10px 30px #0003;
+  overflow: hidden;
+  animation: qt-lift 120ms ease-out;
+}
+.qt-picker-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 6px 10px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  box-sizing: border-box;
+}
+.qt-picker-heading > span:first-child {
+  display: flex;
+}
+.qt-picker-heading svg {
+  width: 13px;
+  height: 13px;
+}
+.qt-picker-heading small {
+  margin-left: auto;
+  font-size: 9px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.qt-picker-option {
+  gap: 8px;
+  height: 46px;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  font-size: var(--font-ui-small);
+  line-height: 1.3;
+  border-top: 1px solid var(--background-modifier-border);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.qt-picker-icon,
+.qt-picker-check {
+  display: flex;
+  flex-shrink: 0;
+}
+.qt-picker-icon svg,
+.qt-picker-check svg {
+  width: 14px;
+  height: 14px;
+}
+.qt-picker-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.qt-picker-text strong {
+  font-size: var(--font-ui-small);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qt-picker-text > span {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qt-picker-check {
+  visibility: hidden;
+}
+.qt-picker-option.is-selected .qt-picker-check {
+  visibility: visible;
+}
+.qt-picker-option.is-selected {
+  background: color-mix(in srgb, var(--interactive-accent) 16%, var(--background-primary));
+  color: var(--text-accent);
+}
+.qt-ghost[hidden],
+.qt-picker[hidden],
+.qt-drop-line[hidden] {
+  display: none;
+}
+.qt-settings .qt-error {
+  color: var(--text-error);
+}
+@keyframes qt-lift {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (hover: none) {
+  .qt-handle {
+    opacity: 0.65;
+    min-width: 32px;
+    min-height: 28px;
+  }
+}
+@media (max-width: 600px) {
+  .qt-settings .setting-item {
+    flex-wrap: wrap;
+  }
+  .qt-settings .setting-item-control {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qt-ghost,
+  .qt-ghost-card,
+  .qt-picker {
+    animation: none;
+  }
+  .qt-drop-line {
+    transition: none;
+  }
+}
+
+/* ===== aio-explorer 追加：置顶 / 隐藏 视觉标记 ===== */
+.tree-item-self.qt-pinned-item > .tree-item-inner::after {
+  content: "📌";
+  margin-inline-start: 6px;
+  font-size: 0.72em;
+  opacity: 0.8;
+  vertical-align: middle;
+}
+.tree-item-self.qt-hidden-item > .tree-item-inner {
+  opacity: 0.4;
+  font-style: italic;
+}
+.tree-item-self.qt-hidden-item {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-faint);
+}
+
+/* ===== aio-explorer 追加：专注模式 ===== */
+.qt-focus-icon.is-active {
+  color: var(--interactive-accent);
+  background-color: var(--background-modifier-hover);
+}
+.qt-focus-icon.is-active svg {
+  color: var(--interactive-accent);
+}
+.is-active.qt-focus-icon {
+  box-shadow: inset 0 0 0 1px var(--interactive-accent);
+  border-radius: var(--radius-s);
+}
+
+/* ===== aio-explorer：拖拽排序总开关按钮 =====
+   样式照搬 immersive-folder 的同名按钮。注意选择器必须写足权重：
+   Obsidian 自带 `.nav-buttons-container .nav-action-button.is-active` 权重更高，
+   会被双class 规则覆盖（immersive-folder 源码注释里也提醒了这一点）。*/
+.nav-buttons-container .nav-action-button.qt-drag-sort-icon.is-active {
+  background-color: hsla(var(--color-accent-hsl), 0.18);
+  color: var(--color-accent);
+}
+.nav-buttons-container .nav-action-button.qt-drag-sort-icon {
+  cursor: pointer;
+}
+/* ============================================================
+   aio-explorer：标题栏按钮在窄屏 / 窄侧栏下的协调处理
+   ------------------------------------------------------------
+   背景：Obsidian 的 `.nav-buttons-container` 是 position:absolute
+   贴在标题栏右侧，且 `flex-wrap: nowrap`（workspace-drawer 下强制）。
+   按钮一多，侧栏一窄，标题就被挤掉、按钮甚至会被压成半个方块
+   （半个方块 + is-active 底色 = 用户看到的「空高亮方块」）。
+
+   做法（刻意不用 @container）：
+     CSS 容器查询需要在祖先上声明 container-type，而 container-type
+     会附加 layout containment —— 该元素会变成绝对定位后代的包含块，
+     这会改动 `.nav-buttons-container`（position:absolute）的定位参照，
+     有把标题栏按钮挪位的风险。
+     所以改为：JS 用 ResizeObserver 量侧栏宽度，按阈值挂/摘 class，
+     样式这边只做两件确定安全的事。
+
+   class 由 toggleNavDensity() 维护：
+     .qt-nav-tight  侧栏 < 260px —— 收紧内边距与图标尺寸
+     .qt-nav-tightest 侧栏 < 200px —— 进一步收紧
+   ============================================================ */
+
+/* 1) 按钮永不被压缩、永不换行。
+      这是「显示完整、不变成半个方块」的第一道保证：
+      宁可标题文字让位，图标也必须是完整的正方形。*/
+.workspace-drawer .nav-buttons-container {
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+.workspace-drawer .nav-buttons-container > .nav-action-button {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+/* 2) 侧栏偏窄：收紧内边距 + 缩小图标，7 个按钮仍能排成一行 */
+.workspace-drawer.qt-nav-tight .nav-buttons-container {
+  gap: 0;
+}
+.workspace-drawer.qt-nav-tight .nav-buttons-container > .nav-action-button {
+  padding: var(--size-2-1, 2px);
+  height: var(--touch-size-s, 22px);
+  width: var(--touch-size-s, 22px);
+}
+.workspace-drawer.qt-nav-tight .nav-buttons-container > .nav-action-button > svg {
+  --icon-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* 极窄（分屏 / 手机横屏）：再收一档，仍保持完整的正方形 */
+.workspace-drawer.qt-nav-tightest .nav-buttons-container > .nav-action-button {
+  padding: 1px;
+  height: 20px;
+  width: 20px;
+}
+.workspace-drawer.qt-nav-tightest .nav-buttons-container > .nav-action-button > svg {
+  --icon-size: 13px;
+  width: 13px;
+  height: 13px;
+}
+
+/* 3) 手机：触控目标不该被压到 20px 以下，改成允许换到第二行——
+      图标依旧完整完整可见，只是排布由一行变两行。*/
+body.is-phone .workspace-drawer .nav-buttons-container {
+  flex-wrap: wrap;
+  row-gap: var(--size-2-1, 2px);
+}
+
+/* 4) 空间不够时标题先让位：标题是可截断的，按钮必须一直可见。
+      按钮是操作入口，标题只是说明，优先级更低。*/
+.workspace-drawer .workspace-drawer-header-left,
+.workspace-drawer .workspace-drawer-header-name-text {
+  min-width: 0;
+}
+.workspace-drawer .workspace-drawer-header-name-text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* 5) 图标在按钮内水平居中，避免看起来偏在一侧 */
+.workspace-drawer .nav-buttons-container > .nav-action-button > svg {
+  display: block;
+  margin-inline: auto;
+}
+
+/* ===== aio-explorer：自绘排序图标的尺寸兜底 =====
+   自绘 svg 已带 width/height=16，但主题可能用 --icon-size 覆盖 .svg-icon 的宽高，
+   这里把「图标必须可见」这件事写死：给固定尺寸 + 让 stroke 跟随文字色，
+   避免出现「有底色、没图形」的空方块。*/
+.workspace-drawer .nav-action-button.qt-drag-sort-icon > svg.qt-drag-sort-svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  flex: 0 0 auto;
+  color: currentColor;
+  pointer-events: none;
+}
+/* 窄侧栏时跟着一起缩小（与 .qt-nav-tight 的 22px 按钮配套） */
+.workspace-drawer.qt-nav-tight .nav-action-button.qt-drag-sort-icon > svg.qt-drag-sort-svg {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+}
+.workspace-drawer.qt-nav-tightest .nav-action-button.qt-drag-sort-icon > svg.qt-drag-sort-svg {
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  min-height: 13px;
+}
+
+/* ===== aio-explorer：拖拽排序开关的「关闭」外观 =====
+   按钮常驻，关闭时只取消高亮 —— 但要让人一眼看出「现在是关的」。
+   做法：保留图标轮廓（不隐藏、不变形），只把描边色压到 muted 并去掉底色。
+   不用 opacity 整体淡出：那样图标会跟着变淡，在窄屏下更难辨认，
+   而且 immersive-folder 用同样的处理（.immersive-folder-blocked { opacity:.4 }）
+   会让「关掉的按钮」看起来像坏了。这里保持形状清晰，只换颜色。*/
+.workspace-drawer .nav-action-button.qt-drag-sort-icon:not(.is-active) {
+  background-color: transparent;
+  color: var(--text-faint);
+}
+.workspace-drawer .nav-action-button.qt-drag-sort-icon:not(.is-active) > svg.qt-drag-sort-svg {
+  color: var(--text-faint);
+}
+.workspace-drawer .nav-action-button.qt-drag-sort-icon:not(.is-active):hover {
+  background-color: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+.workspace-drawer .nav-action-button.qt-drag-sort-icon:not(.is-active):hover > svg.qt-drag-sort-svg {
+  color: var(--text-normal);
+}
+
+/* ============================================================
+   笔记计数（融合 File Explorer Note Count）
+   ------------------------------------------------------------
+   原插件用「写 data-count 属性 + CSS ::after 显示」的做法，
+   这里沿用同一套机制，规则基本照搬（选择器与属性名保持一致），
+   仅调整了与本插件已有样式的配合。
+
+   为什么用 data-count 而不是直接插文字节点：
+   文字节点会被 Obsidian 的虚拟滚动回收/重建，属性则会跟随行元素，
+   在行被复用后依然保留 —— 这与文件树「虚拟滚动、DOM 节点回收复用」
+   的机制是相容的。
+   ============================================================ */
+
+/* 计数数字本体 */
+.nav-folder-title[data-count]::after,
+.qt-root-folder-title[data-count]::after {
+  content: attr(data-count);
+  display: inline-block;
+  position: relative;
+  font-size: calc(100% * 0.8);
+  margin-right: 4px;
+  padding: 2px 0;
+  transition: opacity 100ms ease-in-out;
+}
+
+/* 根文件夹行（库名 + 全库总数） */
+.qt-root-folder-title {
+  display: flex;
+}
+.qt-root-folder-row {
+  margin-top: 15px;
+}
+
+/* 「折叠时也显示数量」的开关效果：
+   关闭时，只显示【折叠着】的目录的数字（已展开的目录里能直接看到内容，
+   数字视为冗余）；打开时，展开与折叠都显示。
+
+   ★ 为什么改用 .qt-hide-expanded-count 而不是原来的 body 全局类：
+     原插件靠 body 上的 oz-show-all-num 开关，而这个类需要插件在
+     onLayoutReady 时机正确挂上；一旦时机没走到（布局已就绪后才注册回调、
+     视图尚未挂载等），body 上就永远没有这个类，
+     于是「已展开且含子文件夹」的目录一律被隐藏 —— 表现为
+     第 1、2 层数字消失、第 3 层（叶子目录）正常，且开关显示为「已开启」。
+     改为自己在每个标题元素上打一个明确标记，不依赖任何全局时序。*/
+.qt-hide-expanded-count
+  .nav-folder:not(.is-collapsed)
+  > .nav-folder-title.oz-with-subfolder[data-count]:not([data-path="/"])::after {
+  opacity: 0;
+}
+
+/* 兼容：body 上有全局类时同样隐藏 */
+body:not(.oz-show-all-num)
+  .nav-folder:not(.is-collapsed)
+  > .nav-folder-title.oz-with-subfolder[data-count]:not([data-path="/"])::after {
+  opacity: 0;
+}
+
+/* 让标题文字先占满剩余宽度，数字自然被推到行尾右侧 */
+.nav-folder-title-content {
+  flex-grow: 1;
+}
+
+/* ============================================================
+   aio-explorer：设置面板的横向分组标签栏
+   ------------------------------------------------------------
+   起因：设置项越来越多，整页拉得很长，滚动找设置很费劲。
+   做法：一级标题横向排成标签栏，点哪个只显示那个分组的内容。
+   宽度不够时标签栏自己横向滚动，不会把页面撑宽。
+   ============================================================ */
+.qt-settings .qt-tab-bar {
+  display: flex;
+  /* aio-explorer（2026-10-21）：由 nowrap + 横向滚动改为 wrap 换行。
+     起因：英文模式下标签更长（General / Dragging / Focus mode / File cleaner /
+     Note count / Note pin / File icons / Title adjust），横向滚动虽然不撑宽页面，
+     但滚动条被隐藏了 → 最右侧标签被裁掉一半，用户看不到自己点的哪个标签。
+     改为换行后，放不下就排到第二排，标签永远完整可见。 */
+  flex-wrap: wrap;
+  gap: var(--size-2-1, 2px);
+  overflow: visible;
+  margin-bottom: var(--size-4-3, 8px);
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+/* 单个标签：像一枚药丸，未选中低调、选中明显 */
+.qt-settings .qt-tab {
+  /* 换行后每个标签都要保持自身宽度，绝不被压扁换字 */
+  flex: 0 0 auto;
+  max-width: 100%;
+  appearance: none;
+  cursor: pointer;
+  font-size: var(--font-ui-small);
+  line-height: 1.4;
+  padding: var(--size-2-1, 2px) var(--size-4-3, 8px);
+  border-radius: var(--radius-s);
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: background-color 100ms ease-in-out, color 100ms ease-in-out;
+}
+.qt-settings .qt-tab:hover {
+  background-color: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+/* 选中态：用主题强调色，浅色深色都能分辨 */
+.qt-settings .qt-tab.qt-tab-active {
+  background-color: hsla(var(--color-accent-hsl), 0.16);
+  border-color: hsla(var(--color-accent-hsl), 0.35);
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+/* 面板：同一时刻只显示当前分组 */
+.qt-settings .qt-tab-panel {
+  display: none;
+}
+.qt-settings .qt-tab-panel.qt-tab-panel-active {
+  display: block;
+}
+
+/* ============================================================
+   专注模式的「设备开关」行
+   ------------------------------------------------------------
+   之前这三行被塞进 setting 的 controlEl（右侧窄栏），
+   「电脑」这种两字标签被挤成竖排、控件也挤在一起。
+   现在改为横跨整行：标签在左、下拉在右，整行对齐。
+   ============================================================ */
+.qt-device-field {
+  /* 让内部这块占满整行，脱离左右两栏的挤压 */
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--size-2-2, 4px);
+}
+.qt-device-field .setting-item-control {
+  display: none;
+}
+.qt-device-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-1, 2px);
+  width: 100%;
+  min-width: 0;
+}
+/* 每一行：左标签右下拉，中间留空自动对齐 */
+.qt-device-rows .setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-3, 8px);
+  border: none;
+  border-radius: var(--radius-s);
+  padding: var(--size-2-1, 2px) 0;
+  min-height: 0;
+  background-color: transparent;
+}
+.qt-device-rows .setting-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+/* 标签不被压成竖排 —— 关键的一条 */
+.qt-device-rows .setting-item-name {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  width: auto;
+  font-size: var(--font-ui-small);
+  color: var(--text-normal);
+}
+.qt-device-rows .setting-item-control {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.qt-device-rows select {
+  min-width: 7em;
+  max-width: 9em;
+}
+/* 当前设备提示：告诉用户「你现在这台是哪台」，避免改错行 */
+.qt-device-hint {
+  margin-top: var(--size-2-2, 4px);
+  font-size: var(--font-ui-smaller, 0.8em);
+  color: var(--text-faint);
+  text-align: right;
+}
+
+/* ============================================================
+   aio-explorer：文件清理（融合 File Cleaner Redux）
+   ------------------------------------------------------------
+   两处用到样式：
+   1) 设置页里的二级分区标题（文件夹 / 文件 / Markdown…）
+   2) 清理前的确认弹窗（清单、计数、按钮）
+   ============================================================ */
+
+/* 二级分区标题：比一级标题弱一档，让 21 项设置有清晰的层次 */
+.qt-settings .setting-item.qt-clean-subhead {
+  border: none;
+  background-color: transparent;
+  padding: var(--size-4-3, 8px) 0 var(--size-2-2, 4px);
+  min-height: 0;
+}
+.qt-settings .qt-clean-subhead .setting-item-name {
+  font-size: var(--font-ui-small);
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+.qt-settings .qt-clean-subhead .setting-item-info {
+  flex: 1 1 auto;
+}
+/* 标题下面一条细分隔线，视觉上把各区分开 */
+.qt-settings .qt-clean-subhead::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: var(--size-2-2, 4px);
+  background-color: var(--background-modifier-border);
+}
+
+/* ── 清理确认弹窗 ── */
+.qt-clean-list {
+  /* 原来 40vh 偏矮，路径折行后行数变多；放宽一点并保留滚动 */
+  max-height: 55vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  margin: var(--size-4-2, 6px) 0;
+  padding: var(--size-2-2, 4px) 0;
+}
+.qt-clean-row {
+  display: flex;
+  /* 路径会折成多行，勾选框与标签要顶部对齐，否则勾选框会跑到中间 */
+  align-items: flex-start;
+  gap: var(--size-4-2, 6px);
+  padding: var(--size-2-2, 4px) var(--size-4-2, 6px);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.qt-clean-row:last-child {
+  border-bottom: none;
+}
+.qt-clean-row:hover {
+  background-color: var(--background-modifier-hover);
+}
+.qt-clean-row input[type="checkbox"] {
+  flex: 0 0 auto;
+  margin: 0;
+  /* 与第一行文字对齐 */
+  margin-top: 0.2em;
+}
+/* 文件路径：换行完整显示。
+   之前用了 white-space:nowrap + text-overflow:ellipsis，
+   长文件名就被截断成「…/07 第七篇，风险意识篇」，看不出到底要删哪个文件 ——
+   而这恰恰是用户在删除前最需要看清的信息。
+   文件名普遍很长（含目录层级），必须允许折行；折行时用悬挂缩进对齐，
+   方便区分「下一行是新的一项」还是「上一项的续行」。 */
+.qt-clean-row > span:first-of-type {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* 不用 text-overflow，也不 nowrap —— 完整显示 */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.5;
+  /* 续行缩进：折行后仍能看出它属于哪一行 */
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+/* 「文件」/「文件夹」标签：靠右、不换行 */
+.qt-clean-kind {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  margin-top: 0.2em;
+  padding: 0 6px;
+  border-radius: var(--radius-s);
+  background-color: var(--background-modifier-border);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+.qt-clean-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-bottom: var(--size-4-2, 6px);
+}
+.qt-clean-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-2-2, 4px);
+  justify-content: flex-end;
+}
+.qt-clean-buttons button {
+  cursor: pointer;
+}
+
+/* ============================================================
+   aio-explorer：模块总开关（专注 / 文件清理 / 笔记计数）
+   ------------------------------------------------------------
+   这三个开关决定「整页设置当前是否生效」，所以要一眼看得出，
+   做法：加淡色底 + 上方细线，把它和下面的普通设置项区分开。
+   ============================================================ */
+.qt-settings .setting-item.qt-module-switch {
+  margin-bottom: var(--size-4-3, 8px);
+  padding: var(--size-4-2, 6px) var(--size-4-3, 8px);
+  border-radius: var(--radius-m);
+  border: none;
+  background-color: hsla(var(--color-accent-hsl), 0.07);
+  border-top: 2px solid hsla(var(--color-accent-hsl), 0.28);
+}
+.qt-settings .qt-module-switch .setting-item-name {
+  font-weight: var(--font-semibold);
+}
+/* 说明文字缩进对齐，让它和上面的标题不显得是两件独立的事 */
+.qt-settings .qt-module-switch .setting-item-description {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+/* aio-explorer：启动通知开关的实时状态文字 */
+.qt-inline-status {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-muted);
+  background: var(--background-modifier-border);
+  vertical-align: middle;
+}
+.qt-inline-status-off {
+  color: var(--text-success, #4caf50);
+  background: var(--background-modifier-success, rgba(76, 175, 80, 0.15));
+}
+
+
+/* ===== 文件置顶 =====
+   样式随 Aio Explorer 自带。 */
+/* Native theme tokens; every rule is scoped to this view. */
+.workspace-leaf-content[data-type="000folder-pin-view"] .view-content.fpv-root,
+.workspace-leaf-content[data-type="000quiet-tree-note-pin"] .view-content.fpv-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    container: fpv / inline-size;
+    padding: 0;
+    overflow: hidden;
+}
+.fpv-root .fpv-toolbar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 8px 4px;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+.fpv-root button.fpv-tool {
+    --icon-size: var(--icon-m, 18px);
+    display: inline-flex;
+    flex: 0 1 30px;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    min-width: 0;
+    box-sizing: border-box;
+    height: 28px;
+    padding: 5px;
+    border: 0;
+    border-radius: var(--clickable-icon-radius, 4px);
+    background: transparent;
+    box-shadow: none;
+    color: var(--icon-color, var(--text-muted));
+    cursor: var(--cursor, default);
+}
+.fpv-root button.fpv-tool:hover { background: var(--background-modifier-hover); color: var(--icon-color-hover, var(--text-normal)); }
+.fpv-root button.fpv-tool.is-active { background: var(--background-modifier-active-hover); color: var(--text-normal); }
+.fpv-root button.fpv-tool:disabled { opacity: 0.4; cursor: default; }
+.fpv-root .fpv-selection-bar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 10px;
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+.fpv-root .fpv-selection-bar[hidden] { display: none; }
+.fpv-root .fpv-selection-bar button { padding: 2px 8px; height: auto; font-size: inherit; }
+.fpv-root .fpv-tool svg { width: var(--icon-size); height: var(--icon-size); max-width: 100%; flex-shrink: 1; stroke-width: var(--icon-stroke, 1.75px); }
+/* Keep all six actions visible as the sidebar narrows, without resize handlers. */
+@container fpv (max-width: 205px) {
+    .fpv-root .fpv-toolbar { gap: 1px; padding-inline: 4px; }
+    .fpv-root button.fpv-tool { padding-inline: 3px; }
+}
+@container fpv (max-width: 175px) {
+    .fpv-root .fpv-toolbar { gap: 0; padding-inline: 2px; }
+    .fpv-root button.fpv-tool { --icon-size: 16px; padding-inline: 2px; }
+}
+.fpv-root .fpv-bar {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1px;
+    min-width: 0;
+    min-height: 0;
+    padding: 4px 8px 7px;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+}
+.fpv-root .fpv-bar::-webkit-scrollbar { width: 8px; }
+.fpv-root .fpv-bar[hidden] { display: none; }
+.fpv-root .fpv-subfolder-bar {
+    padding-top: 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    margin-bottom: 3px;
+}
+.fpv-root .fpv-subfolder-bar button.fpv-pin { height: 25px; font-size: var(--font-ui-smaller, 12px); }
+.fpv-root .fpv-subfolder-bar button.fpv-pin.is-active { box-shadow: inset 2px 0 0 var(--interactive-accent); }
+.fpv-root button.fpv-pin {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    height: 27px;
+    min-height: 0;
+    padding: 3px 9px;
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--radius-s, 4px);
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: var(--font-ui-small, 13px);
+    font-weight: var(--font-normal, 400);
+    line-height: 21px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: var(--cursor, default);
+}
+.fpv-root button.fpv-pin:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+.fpv-root button.fpv-pin.is-active {
+    color: var(--nav-item-color-active, var(--text-normal));
+    background: var(--nav-item-background-active, var(--background-modifier-hover));
+    font-weight: var(--font-semibold, 600);
+    box-shadow: inset 2px 0 0 var(--interactive-accent);
+}
+.fpv-root .fpv-pin.is-dragging { opacity: 0.45; }
+.fpv-root .fpv-pin.drag-over { outline: 1px solid var(--interactive-accent); outline-offset: -1px; }
+.fpv-root .fpv-pin.fpv-drop-target, .fpv-root .fpv-row.fpv-drop-target { outline: 2px solid var(--interactive-accent); outline-offset: -2px; }
+.fpv-root .fpv-pin.fpv-drop-invalid, .fpv-root .fpv-row.fpv-drop-invalid { outline: 2px solid var(--text-error); outline-offset: -2px; }
+.fpv-root .fpv-tree {
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 2px 8px 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    overflow-anchor: none;
+}
+.fpv-root .fpv-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 27px;
+    margin: 0;
+    padding: 3px 8px 3px calc(5px + var(--fpv-depth, 0) * var(--nav-item-children-padding-start, 16px));
+    border-radius: var(--nav-item-radius, 4px);
+    color: var(--nav-item-color, var(--text-muted));
+    font-size: var(--nav-item-size, var(--font-ui-small, 13px));
+    font-weight: var(--nav-item-weight, 400);
+    line-height: 1.5;
+    cursor: var(--cursor, default);
+    user-select: none;
+}
+.fpv-root .fpv-row:hover { background: var(--nav-item-background-hover, var(--background-modifier-hover)); color: var(--nav-item-color-hover, var(--text-normal)); }
+.fpv-root .fpv-row.is-active { background: var(--nav-item-background-active, var(--background-modifier-hover)); color: var(--nav-item-color-active, var(--text-normal)); }
+.fpv-root .fpv-row.is-selected { background: var(--nav-item-background-selected, var(--background-modifier-hover)); color: var(--nav-item-color-selected, var(--text-normal)); }
+.fpv-root .fpv-row.is-dragging { opacity: 0.45; }
+.fpv-root .fpv-arrow { display: flex; flex: 0 0 14px; width: 14px; color: var(--nav-collapse-icon-color, var(--text-faint)); }
+.fpv-root .fpv-arrow svg { width: 14px; height: 14px; stroke-width: 2px; }
+.fpv-root .fpv-row[aria-expanded="true"] > .fpv-arrow { transform: rotate(90deg); }
+.fpv-root .fpv-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fpv-root .fpv-tool:focus-visible,
+.fpv-root .fpv-pin:focus-visible,
+.fpv-root .fpv-row:focus-visible { outline: 2px solid var(--background-modifier-border-focus, var(--interactive-accent)); outline-offset: -2px; }
+.fpv-root .fpv-empty { padding: 14px 8px; color: var(--text-muted); font-size: var(--font-ui-small, 13px); line-height: 1.6; }
+.fpv-root .fpv-hint { color: var(--text-faint); padding-top: 4px; }
+.fpv-root .fpv-editor-row { padding: 2px 5px 5px calc(23px + var(--fpv-depth, 0) * 16px); }
+.fpv-root input.fpv-input { width: 100%; height: 28px; font-size: var(--font-ui-small, 13px); }
+.fpv-root .fpv-input-message { padding: 4px 0 0; color: var(--text-muted); font-size: var(--font-ui-smaller, 12px); line-height: 1.4; overflow-wrap: anywhere; }
+.fpv-root .fpv-input[aria-invalid="true"] { border-color: var(--text-error); }
+.fpv-root .fpv-input[aria-invalid="true"] + .fpv-input-message { color: var(--text-error); }
+.fpv-root .fpv-row[hidden], .fpv-root .fpv-empty[hidden] { display: none; }
+@media (pointer: coarse) {
+    .fpv-root button.fpv-tool { width: 36px; height: 36px; }
+    .fpv-root button.fpv-pin { height: 32px; }
+    .fpv-root .fpv-row { min-height: 34px; }
+}
+
+/* ============================================================================
+   aio-explorer：文件图标 —— 多彩文件夹图标
+   多彩文件夹图标的完整实现。
+   ----------------------------------------------------------------------------
+   工作原理（与主题版完全一致）：
+   1) 按文件夹在列表中的兄弟位置取模 7（nth-child 7n+2 ~ 7n+8）循环上色；
+      （2026-10-21 起为 7 色：红/橙/黄/绿/青/蓝/紫，按用户要求去掉了粉色）
+   2) 颜色写在 --qt-colorful-folder-color 变量上，由后代图标继承；
+   3) 文件夹图标的 svg 设为透明，容器用 mask 画出文件夹形状，
+      background-color 透出 → 形成彩色文件夹图标；
+   4) 根目录（库名）图标保持默认色，不参与循环。
+   开关：设置 → Aio Explorer →「文件图标」→ 先开总开关，再开「多彩文件夹图标」。
+   颜色优先取主题的 --color-* 变量；主题没定义时用括号内的兜底色
+   （即 Border 主题浅色模式的取值），换任何主题都不会失色。
+   类名用插件自己的 qt-colorful-folder，与主题的 .colorful-folder 互不干扰。
+   ============================================================================ */
+
+/* 2026-10-21：按用户要求去掉最后一种粉色，由 8 色改为 7 色循环
+   （nth-child 的模数随之从 8 改为 7）
+
+   ★ 2026-10-21 修正：本段原来用 7n+2 ~ 7n+8。
+     CSS 的 nth-child 不允许 n 为负数，所以 7n+8 永远匹配不到「第 1 个」元素
+     （实测 Chrome：position 1 在 7n+8 下 background-color 仍为 rgba(0,0,0,0)），
+     导致列表里第一个文件夹拿不到 --qt-colorful-folder-color；
+     而基础渲染段又把 svg 设成 color: transparent，
+     于是第一个文件夹的图标彻底隐形（且「关闭子文件夹跟随」时必现）。
+     现统一改为 7n+1 ~ 7n+7，与下面「子文件夹跟随」段同一套范式。 */
+body.qt-colorful-folder .nav-folder.qt-fc1 {
+    --qt-colorful-folder-color: var(--color-red, #dd2c38);
+}
+body.qt-colorful-folder .nav-folder.qt-fc2 {
+    --qt-colorful-folder-color: var(--color-orange, #de7417);
+}
+body.qt-colorful-folder .nav-folder.qt-fc3 {
+    --qt-colorful-folder-color: var(--color-yellow, #c09c0c);
+}
+body.qt-colorful-folder .nav-folder.qt-fc4 {
+    --qt-colorful-folder-color: var(--color-green, #1da51d);
+}
+body.qt-colorful-folder .nav-folder.qt-fc5 {
+    --qt-colorful-folder-color: var(--color-cyan, #16a6ab);
+}
+body.qt-colorful-folder .nav-folder.qt-fc6 {
+    --qt-colorful-folder-color: var(--color-blue, #1775d9);
+}
+body.qt-colorful-folder .nav-folder.qt-fc7 {
+    --qt-colorful-folder-color: var(--color-purple, #8f47e1);
+}
+
+/* 核心上色：只作用于文件列表里的文件夹图标（.collapse-icon 仅文件夹才有）。
+   比主题基础规则多写一个 .nav-folder，保证 specificity 压过
+   body:not(.file-icon-remove) ... .tree-item-icon.collapse-icon 的
+   background-color: currentColor，颜色循环必然生效。 */
+body.qt-colorful-folder .workspace-leaf-content[data-type="file-explorer"] .nav-folder .tree-item-icon.collapse-icon {
+    background-color: var(--qt-colorful-folder-color);
+}
+
+/* ============================================================================
+   aio-explorer：文件图标 —— 子文件夹图标颜色跟随一级文件夹
+   ---------------------------------------------------------------------------
+   提取自用户自定义片段「(自定义)子文件夹图标颜色跟随一级文件夹.css」，未改动片段文件。
+
+   要解决的问题：
+     主题的「多彩文件夹图标」按文件夹在列表中的**兄弟位置**循环上色，
+     ① 每进入一层就重新轮一遍；② 文件树是虚拟滚动，只渲染看得见的行，
+        一滚动「位置」就变了 → 颜色跟着变。同一层文件夹颜色五颜六色，很难认。
+
+   本规则改成：颜色由**所在一级文件夹的位置**决定，一级颜色定死后不再变化。
+     ① 一级文件夹按在列表中的顺序循环 7 色（红橙黄绿青蓝紫）；
+     ② 所有子层级文件夹通过 CSS 变量继承自动跟随所属一级文件夹的颜色，
+        并随纵向指引线一起变色；
+     ③ 因为是 DOM 位置而非路径，所以换任何目录结构、任何用户都生效，
+        也不会暴露使用者的文件夹名字。
+
+   与原片段的差别：
+     · 原片段按文件夹名字（data-path）写死 14 行对照表 + 灰色兜底，
+       别人装上完全不生效；现改为按位置自动循环，任何目录结构都有效。
+     · 选择器前缀由主题的 `.colorful-folder` 换成插件自己的 `qt-colorful-folder`，
+       只需打开本插件的「多彩文件夹图标」开关就生效。
+   ============================================================================ */
+
+/* 一级文件夹：按在列表中的出现顺序循环 7 色。
+   CSS 自定义属性会自动继承给后代，所以下面这一组规则只要作用在【一级文件夹】上，
+   它下面的所有子文件夹就都会跟着用同一个颜色 —— 不需要为子文件夹单独写规则。
+
+   ★ 一级文件夹怎么选中（本项目踩过最大的坑，务必保留）：
+     不用 CSS 选择器判断，改由插件用 JS 打类 —— 见 main.js 的 markFirstLevelFolders()。
+     原因（2026-10-21 从 obsidian.asar 1.14.4 核心代码实证）：
+     · 文件树【从不】给任何节点加 .mod-root —— core 里 mod-root 只出现在
+       发布站点树和工作区容器上；官方 app.css 里那条 .nav-folder.mod-root
+       是历史遗留规则。所以任何以 .mod-root 为锚点的选择器在真实环境命中 0。
+     · 一级文件夹挂在 rootEl.childrenEl（一个【没有 class 的 div】）下，
+       纯 CSS 无法把它和二级文件夹区分开。
+     · 可靠的判据是 data-path（core 里 selfEl.setAttr("data-path", file.path)）：
+       一级 = 路径不含 "/"，更深层级 = 含 "/"。插件据此打 .qt-first 与 .qt-first-cN。
+     · 颜色序号也不靠 :nth-child —— 文件树是虚拟滚动，DOM 里只有可见行，
+       :nth-child 会随滚动乱跳。序号由插件从 vault 取【完整顺序】后算好。
+
+   类名由 JS 打：.qt-first-c1 ~ .qt-first-c7 = 7 色循环。
+
+   子文件夹不写任何 --wb-branch-color 规则 —— 保持从父级继承来的值。
+   （如果给所有 .nav-folder 都设兜底色，就会把继承值覆盖成灰色，
+     这正是旧实现里子文件夹颜色不对的原因。）
+
+   子文件夹不写任何 --wb-branch-color 规则 —— 保持从父级继承来的值。
+   （如果给所有 .nav-folder 都设兜底色，就会把继承值覆盖成灰色，
+     这正是旧实现里子文件夹颜色不对的原因。） */
+body.qt-subfolder-inherit .nav-folder.qt-first-c1 {
+    --wb-branch-color: var(--color-red, #dd2c38);
+}
+body.qt-subfolder-inherit .nav-folder.qt-first-c2 {
+    --wb-branch-color: var(--color-orange, #de7417);
+}
+body.qt-subfolder-inherit .nav-folder.qt-first-c3 {
+    --wb-branch-color: var(--color-yellow, #c09c0c);
+}
+body.qt-subfolder-inherit .nav-folder.qt-first-c4 {
+    --wb-branch-color: var(--color-green, #1da51d);
+}
+body.qt-subfolder-inherit .nav-folder.qt-first-c5 {
+    --wb-branch-color: var(--color-cyan, #16a6ab);
+}
+body.qt-subfolder-inherit .nav-folder.qt-first-c6 {
+    --wb-branch-color: var(--color-blue, #1775d9);
+}
+body.qt-subfolder-inherit .nav-folder.qt-first-c7 {
+    --wb-branch-color: var(--color-purple, #8f47e1);
+}
+
+/* 图标上色：选择器比「多彩文件夹图标」段更长（多 .nav-folder + !important），
+   颜色优先用一级文件夹的颜色。
+   ★ 加 var(--wb-branch-color, currentColor) 兜底：万一某一级文件夹没被
+     上面 7 条命中（例如层级结构特殊），至少退回主题默认文字色，
+     绝不会出现「变量为空 → 背景全透明 → 图标消失」这种静默故障。 */
+body.qt-subfolder-inherit.qt-colorful-folder
+    .workspace-leaf-content[data-type="file-explorer"]
+    .nav-folder .tree-item-icon.collapse-icon {
+    background-color: var(--wb-branch-color, currentColor) !important;
+}
+
+/* 纵向指引线用同一个颜色（Obsidian 的指引线颜色取自 --nav-indentation-guide-color） */
+body.qt-subfolder-inherit .nav-folder > .nav-folder-children {
+    --nav-indentation-guide-color:
+        color-mix(in srgb, var(--wb-branch-color, currentColor) 70%, transparent);
+}
+
+
+/* ---- 以下为基础渲染规则，让「彩色形状」在任何主题下都能正确显示 ----
+   若正在使用 Border 主题，这些规则与其自带规则形状完全相同，覆盖后无差异。 */
+
+/* 文件夹展开态：容器 mask 成文件夹形状，svg 透明让底色透出 */
+body.qt-colorful-folder .workspace-leaf-content[data-type="file-explorer"] .nav-folder .tree-item-icon.collapse-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M4 9.333 4.967 7.4a1.333 1.333 0 0 1 1.193-.733h7.173m0 0a1.333 1.333 0 0 1 1.294 1.666l-1.034 4a1.333 1.333 0 0 1-1.293 1H2.667A1.333 1.333 0 0 1 1.333 12V3.333C1.333 2.6 1.933 2 2.667 2h2.62a1.333 1.333 0 0 1 1.106.6l.547.8a1.333 1.333 0 0 0 1.107.6H12a1.333 1.333 0 0 1 1.333 1.333v1.334Z'/%3e%3c/svg%3e");
+}
+body.qt-colorful-folder .workspace-leaf-content[data-type="file-explorer"] .nav-folder .tree-item-icon.collapse-icon svg.svg-icon {
+    color: transparent;
+}
+/* 文件夹折叠态：换成收起来的文件夹形状 */
+body.qt-colorful-folder .workspace-leaf-content[data-type="file-explorer"] .nav-folder.is-collapsed .tree-item-icon.collapse-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M2.667 13.333h10.666A1.333 1.333 0 0 0 14.667 12V5.333A1.333 1.333 0 0 0 13.333 4H8.047a1.333 1.333 0 0 1-1.107-.6l-.547-.8A1.333 1.333 0 0 0 5.287 2h-2.62a1.333 1.333 0 0 0-1.334 1.333V12c0 .733.6 1.333 1.334 1.333Z'/%3e%3c/svg%3e");
+}
+
+
+/* ============================================================================
+   aio-explorer：文件图标 —— 自定义图标 + 文件夹字体加粗
+   · 整套图标系统（文件夹展开/折叠形状、文件按扩展名分图标、根目录库名图标、
+     标签/书签面板图标），选择器前缀为插件自己的 body.qt-custom-icons；
+   · 文件夹字体加粗通过 --nav-item-weight 系列变量实现 —— 这些变量由 Obsidian 核心消费
+     （app.css: .tree-item-self { font-weight: var(--nav-item-weight) }），
+     因此换任何主题都有效。
+   ----------------------------------------------------------------------------
+   开关语义（与用户在 Border 里的体验对应）：
+   · 自定义图标 开 = 显示提取出来的这套图标；关 = 不显示，回归主题/软件原生状态。
+     在 Border 主题下与主题自带图标完全相同（规则一致，覆盖无差异）；
+     本开关主要供切换到其他主题时使用。
+   · 文件夹字体加粗 开 = 文件列表里的文件夹名称加粗；关 = 恢复正常字重。
+   两者都受「文件图标」总开关控制，拨动立即生效。
+   ============================================================================ */
+
+body.qt-custom-icons .workspace-leaf-content[data-type="tag"] .tree-item:not(:hover) .tree-item-icon.collapse-icon svg.svg-icon,
+body.qt-custom-icons .workspace-leaf-content:is([data-type="bookmarks"], [data-type="file-explorer"]) .tree-item-icon.collapse-icon svg.svg-icon {
+    color: transparent;
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="tag"] .tree-item:not(:hover) .tree-item-icon.collapse-icon,
+body.qt-custom-icons .workspace-leaf-content:is([data-type="bookmarks"], [data-type="file-explorer"]) .tree-item-icon.collapse-icon {
+    background-color: currentColor;
+    opacity: var(--icon-opacity);
+}
+
+/* ★ 2026-10-21 修正（本轮实测抓到的回归）：
+   下面这条原本照抄主题的
+       :is(.nav-file-title, .nav-folder.mod-root > .nav-folder-title)::before
+   上一轮清理 mod-root 锚点时，被误改成 `.nav-folder > .nav-folder-title`，
+   结果【每个文件夹】都多出一个 ::before 伪元素。
+   而紧随其后那条规则给这个 ::before 画的 mask 是主题给「库根（vault 名）」
+   用的仓库图标（一个方框里带圆点），不是文件夹。
+   更糟的是这个 ::before 与真正的文件夹图标 .tree-item-icon 位置完全重叠：
+       ::before          position:absolute; margin-left:calc(-1 * var(--size-4-5))
+       .tree-item-icon   position:absolute; margin-inline-start:calc(-1 * var(--size-4-5))
+   于是黑色的仓库方框把彩色的文件夹图标整个盖住 →
+   用户看到的现象正是「图标形状不对 + 完全没有颜色」。
+   正确做法：文件夹的 ::before 整条删掉（主题原文只给 mod-root 库根行，
+   而文件树从不渲染库根那一行），只保留 .nav-file-title 的文件图标。
+   同理，下一条给文件夹 ::before 设 mask 的规则也一并删除。 */
+body.qt-custom-icons .workspace-leaf-content[data-type="tag"] .tree-item-self:not(.mod-collapsible):before,
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title::before {
+    content: " ";
+    position: absolute;
+    margin-left: calc(-1 * var(--size-4-5));
+    width: var(--size-4-4);
+    height: var(--size-4-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: var(--icon-opacity);
+    background-color: currentColor;
+    flex: 0 0 auto;
+}
+
+/* 2026-10-21：随上一条一起删除。这里原本给「文件夹 ::before」设 mask，
+   而那个 ::before 本身就是误加的（见上）。库根图标交给主题的 mod-root 规则处理，
+   本插件不再重复绘制，避免与 .tree-item-icon 抢位置。 */
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .tree-item-icon.collapse-icon,
+body.qt-custom-icons .workspace-leaf-content[data-type="bookmarks"] .tree-item-icon.collapse-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M4 9.333 4.967 7.4a1.333 1.333 0 0 1 1.193-.733h7.173m0 0a1.333 1.333 0 0 1 1.294 1.666l-1.034 4a1.333 1.333 0 0 1-1.293 1H2.667A1.333 1.333 0 0 1 1.333 12V3.333C1.333 2.6 1.933 2 2.667 2h2.62a1.333 1.333 0 0 1 1.106.6l.547.8a1.333 1.333 0 0 0 1.107.6H12a1.333 1.333 0 0 1 1.333 1.333v1.334Z'/%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .is-collapsed .tree-item-icon.collapse-icon,
+body.qt-custom-icons .workspace-leaf-content[data-type="bookmarks"] .is-collapsed .tree-item-icon.collapse-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M2.667 13.333h10.666A1.333 1.333 0 0 0 14.667 12V5.333A1.333 1.333 0 0 0 13.333 4H8.047a1.333 1.333 0 0 1-1.107-.6l-.547-.8A1.333 1.333 0 0 0 5.287 2h-2.62a1.333 1.333 0 0 0-1.334 1.333V12c0 .733.6 1.333 1.334 1.333Z'/%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M9.667 1.333H4a1.333 1.333 0 0 0-1.333 1.334v10.666A1.333 1.333 0 0 0 4 14.667h8a1.333 1.333 0 0 0 1.333-1.334V5L9.667 1.333Z'/%3e%3cpath d='M9.333 1.333v4h4'/%3e%3c/g%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".canvas"]::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M6 2H2.667A.667.667 0 0 0 2 2.667v4.666c0 .369.298.667.667.667H6a.667.667 0 0 0 .667-.667V2.667A.667.667 0 0 0 6 2Zm7.333 0H10a.667.667 0 0 0-.667.667v2c0 .368.299.666.667.666h3.333A.667.667 0 0 0 14 4.667v-2A.667.667 0 0 0 13.333 2Zm0 6H10a.667.667 0 0 0-.667.667v4.666c0 .368.299.667.667.667h3.333a.667.667 0 0 0 .667-.667V8.667A.667.667 0 0 0 13.333 8ZM6 10.667H2.667a.667.667 0 0 0-.667.666v2c0 .368.298.667.667.667H6a.667.667 0 0 0 .667-.667v-2A.667.667 0 0 0 6 10.667Z'/%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".base"]::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M6 2H2.667A.667.667 0 0 0 2 2.667V6c0 .368.298.667.667.667H6A.667.667 0 0 0 6.667 6V2.667A.667.667 0 0 0 6 2Zm0 7.333H2.667A.667.667 0 0 0 2 10v3.333c0 .368.298.667.667.667H6a.667.667 0 0 0 .667-.667V10A.667.667 0 0 0 6 9.333Zm3.333-6.666H14M9.333 6H14m-4.667 4H14m-4.667 3.333H14'/%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .is-unsupported.nav-file-title::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M9.667 1.333H4a1.333 1.333 0 0 0-1.333 1.334v10.666A1.333 1.333 0 0 0 4 14.667h8a1.333 1.333 0 0 0 1.333-1.334V5L9.667 1.333Z'/%3e%3cpath d='M6.667 6.867c.133-.267.333-.534.6-.667A1.4 1.4 0 0 1 9 6.467c.2.266.333.533.333.866C9.333 8.2 8 8.667 8 8.667m0 2.666h.007'/%3e%3c/g%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .is-unsupported.nav-file-title:is([data-path$=".zip"], [data-path$=".7z"])::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M2.667 14.667v-12c0-.334.133-.667.4-.934.266-.266.6-.4.933-.4h5.667L13.333 5v8.333c0 .334-.133.667-.4.934-.266.266-.6.4-.933.4h-1.333'/%3e%3cpath d='M9.333 1.333v4h4m-6.666 9.334a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Zm0-10V4m0 4v-.667m0 4.667v-1.333'/%3e%3c/g%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".webm"]::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M2.667 14.667H12a1.333 1.333 0 0 0 1.333-1.334V5L9.667 1.333H4a1.333 1.333 0 0 0-1.333 1.334v2'/%3e%3cpath d='M9.333 1.333v4h4M4.667 6.667 2.667 8H1.333v2.667h1.334l2 1.333V6.667Zm2.666.666c.427.534.667 1.247.667 2 0 .754-.24 1.467-.667 2'/%3e%3c/g%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title:is([data-path$=".svg"], [data-path$=".bmp"], [data-path$=".jpeg"], [data-path$=".jpg"], [data-path$=".png"], [data-path$=".gif"])::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M12.667 2H3.333C2.597 2 2 2.597 2 3.333v9.334C2 13.403 2.597 14 3.333 14h9.334c.736 0 1.333-.597 1.333-1.333V3.333C14 2.597 13.403 2 12.667 2Z'/%3e%3cpath d='M6 7.333a1.333 1.333 0 1 0 0-2.666 1.333 1.333 0 0 0 0 2.666ZM14 10l-2.057-2.057a1.333 1.333 0 0 0-1.886 0L4 14'/%3e%3c/g%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".pdf"]::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M9.667 1.333H4a1.333 1.333 0 0 0-1.333 1.334v10.666A1.333 1.333 0 0 0 4 14.667h8a1.333 1.333 0 0 0 1.333-1.334V5L9.667 1.333Z'/%3e%3cpath d='M9.333 1.333v4h4m-2.666 3.334H5.333m5.334 2.666H5.333M6.667 6H5.333'/%3e%3c/g%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".excalidraw.md"]::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' clip-path='url(%23a)'%3e%3cpath d='M8 12.667 12.667 8l2 2L10 14.667l-2-2Z'/%3e%3cpath d='m12 8.667-1-5-9.667-2.334L3.667 11l5 1L12 8.667ZM1.333 1.333l5.058 5.058'/%3e%3cpath d='M7.333 8.667a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Z'/%3e%3c/g%3e%3cdefs%3e%3cclipPath id='a'%3e%3cpath fill='white' d='M0 0h16v16H0z'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="tag"] .tree-item:not(:hover) .tree-item-icon.collapse-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' clip-path='url(%23a)'%3e%3cpath d='M8.781 1.333c.354 0 .693.14.943.391l4.473 4.473a1.6 1.6 0 0 1 0 2.272l-3.061 3.062a1.6 1.6 0 0 1-2.272 0L4.391 7.057A1.329 1.329 0 0 1 4 6.115V2a.667.667 0 0 1 .667-.667H8.78ZM1.333 4.667V8.78c0 .354.14.693.391.943l4.473 4.473a1.6 1.6 0 0 0 2.128.129'/%3e%3cpath d='M7 4.667A.333.333 0 1 0 7 4a.333.333 0 0 0 0 .667Z'/%3e%3c/g%3e%3cdefs%3e%3cclipPath id='a'%3e%3cpath fill='white' d='M0 0h16v16H0z'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="tag"] .tree-item-self:not(.mod-collapsible)::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg clip-path='url(%23a)'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M8 1.333H1.333V8l6.194 6.193a1.617 1.617 0 0 0 2.28 0l4.386-4.386a1.617 1.617 0 0 0 0-2.28L8 1.333ZM4.667 4.667h.006'/%3e%3c/g%3e%3cdefs%3e%3cclipPath id='a'%3e%3cpath fill='white' d='M0 0h16v16H0z'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e");
+}
+
+body.qt-custom-icons .workspace-leaf-content[data-type="bookmarks"] svg.lucide-folder {
+    background-color: currentColor;
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M1.333 6V3.333C1.333 2.6 1.933 2 2.667 2h2.62a1.333 1.333 0 0 1 1.106.6l.547.8a1.333 1.333 0 0 0 1.107.6h5.286a1.333 1.333 0 0 1 1.334 1.333V12a1.333 1.333 0 0 1-1.334 1.333h-12'/%3e%3cpath d='m5.333 10.667 2-2-2-2'/%3e%3cpath d='M1.333 10.667V10a1.333 1.333 0 0 1 1.334-1.333h4'/%3e%3c/g%3e%3c/svg%3e");
+}
+
+/* ---- 文件夹字体加粗 ----
+   核心 CSS 用 font-weight: var(--nav-item-weight) 渲染标题，
+   悬停/选中态另有 --nav-item-weight-hover / --nav-item-weight-active，
+   三个一起改才不会出现「加粗了但悬停时变回去」的闪跳。 */
+body.qt-folder-bold .nav-folder-title {
+    --nav-item-weight-hover: bold;
+    --nav-item-weight-active: bold;
+    --nav-item-weight: bold;
+}
+/* 双保险：上面只改变量，若用户环境里有规则直接写死 font-weight
+   （例如某些 CSS 片段用 font-weight: 600 !important 强制标题字重），
+   变量的变化就会被压住——开关看似无效。这里再直接声明一次字重，
+   选择器多写一个 .tree-item-self 把 specificity 提到 (0,3,1)，
+   足以压过常见的 body .nav-folder-title 类（(0,2,1)）直接声明。 */
+body.qt-folder-bold .tree-item-self.nav-folder-title {
+    font-weight: bold !important;
+}
+
+
+/* ============================================================================
+   aio-explorer：标题换行
+   文件列表标题不修剪文件名。
+   （theme.css 6328-6330 行），未改动主题本身。
+   ----------------------------------------------------------------------------
+   工作原理（与主题版完全一致）：
+   Obsidian 核心给标题文字设的是 white-space: var(--nav-item-white-space)，
+   而 --nav-item-white-space 默认为 pre（不换行），配合 overflow:hidden +
+   text-overflow:ellipsis，长名字会被截断成「前面…后面」。
+   本规则把 white-space 改成 normal，长名字就会在标题框内自动换行成多行，
+   不再截断；文件夹标题与文件标题都生效（与主题版作用范围相同）。
+   开关：设置 → Aio Explorer →「标题换行」→ 拨动立即生效，无需重启。
+   类名用插件自己的 qt-title-wrap，与主题的 .file-names-untrim 互不干扰。
+   ============================================================================ */
+
+/* ============================================================================
+   aio-explorer：设置页「当前生效状态」面板（2026-10-21）
+   让开关到底生不效一眼可见：绿勾=生效中，红叉=没落地。
+   ============================================================================ */
+.qt-live-status {
+    border-top: 1px solid var(--background-modifier-border);
+}
+.qt-live-panel {
+    margin: 4px 0 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background: var(--background-secondary);
+}
+.qt-live-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+}
+.qt-live-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: var(--font-ui-small);
+}
+.qt-live-name {
+    color: var(--text-muted);
+}
+.qt-live-ok {
+    color: var(--text-success, #2ea043);
+    font-weight: 600;
+}
+.qt-live-size {
+    color: var(--text-normal);
+    font-weight: 600;
+}
+.qt-live-no {
+    color: var(--text-error, #e05252);
+    font-weight: 600;
+}
+.qt-live-hint {
+    margin-top: 6px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}
+.qt-live-actions {
+    margin-top: 10px;
+}
+.qt-live-actions button.mod-cta {
+    cursor: pointer;
+}
+.qt-live-actions button.mod-cta:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+body.qt-title-wrap .workspace-leaf-content[data-type="file-explorer"] :is(.nav-file-title-content, .nav-folder-title-content) {
+    white-space: normal;
+}
+
+/* Aio Explorer:「重置数据」确认弹窗的标题
+   原为createEl("h2")，官方要求标题走CSS 类而非内联/裸标签，
+   改用 h3 + 本类，字号字重与Obsidian 弹窗标题一致。 */
+.qt-modal-heading {
+    margin: 0 0 var(--size-4-2, 8px) 0;
+    font-size: var(--font-ui-large, 1.2em);
+    font-weight: var(--bold-weight, 600);
+    line-height: 1.3;
+    color: var(--text-normal);
+}
