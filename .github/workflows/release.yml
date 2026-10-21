@@ -1,0 +1,69 @@
+name: Release Obsidian plugin
+
+# 两种触发方式（任选其一，效果相同）：
+#   1) 推送一个版本号标签：git push origin 1.0.2  → 自动发版，零点击
+#   2) 仓库 Actions 页手动点 "Run workflow"        → 自动读版本号、打标签、发版
+# 附件只放官方要求的三个文件：main.js / manifest.json / styles.css
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read version from manifest.json
+        id: ver
+        run: echo "version=$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
+      # 标签推送触发时：确认标签名和 manifest 里的版本号一致，
+      # 防止推错标签（如手滑推了个 test）发出错误版本
+      - name: Verify tag matches manifest version
+        if: github.event_name == 'push'
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          if [ "$tag" != "${{ steps.ver.outputs.version }}" ]; then
+            echo "::error::Tag '$tag' does not match manifest.json version '${{ steps.ver.outputs.version }}'. Push the correct tag or bump the version first."
+            exit 1
+          fi
+
+      # 以下两步只在手动触发时需要（标签推送时标签已存在，不能再建）
+      - name: Fail if tag already exists
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if git ls-remote --tags origin "refs/tags/${{ steps.ver.outputs.version }}" | grep -q .; then
+            echo "::error::Tag ${{ steps.ver.outputs.version }} already exists. Bump the version in manifest.json for a new release."
+            exit 1
+          fi
+
+      - name: Create tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.ver.outputs.version }}"
+          git push origin "refs/tags/${{ steps.ver.outputs.version }}"
+
+      - name: Create release with the three plugin files
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.version }}
+          name: Aio Explorer ${{ steps.ver.outputs.version }}
+          body: |
+            Aio Explorer ${{ steps.ver.outputs.version }}
+
+            Install via Obsidian community plugin directory, or manually download
+            `main.js`, `manifest.json` and `styles.css` into
+            `<vault>/.obsidian/plugins/aio-explorer/`.
+          files: |
+            main.js
+            manifest.json
+            styles.css
