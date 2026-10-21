@@ -12,6 +12,17 @@ devices.
 
 ---
 
+## What's new in 1.0.1
+
+- **The language switch now covers every surface.** Settings page, right-click
+  menus, the live-status panel, the file pin view, ribbon tooltips and the
+  command palette all follow the language you pick (Follow Obsidian / 中文 /
+  English). Earlier the live-status panel and the file pin view could stay in
+  Chinese after switching to English.
+- Error notices are no longer hard-coded to Chinese.
+
+---
+
 ## Features
 
 ### Drag and drop
@@ -169,6 +180,11 @@ are preserved in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 ## 中文说明
 
 **Aio Explorer** 是一个 Obsidian 文件树增强插件，把多项常用功能整合到一个设置页里，不用为每个功能单独装插件。每个模块都有独立总开关，也可以按设备分别启用。
+
+### 1.0.1 更新内容
+
+- **语言切换真正覆盖所有界面**：设置页、右键菜单、当前生效状态面板、文件置顶面板、侧栏图标提示、命令面板，全部跟随你在「通用」里选的语言（跟随 Obsidian / 中文 / English）。此前把语言切成英文后，状态面板和文件置顶面板仍会显示中文。
+- 部分只在中文出现的报错提示，现在也按语言显示。
 
 ### 核心功能
 

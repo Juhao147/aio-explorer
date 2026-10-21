@@ -1,7 +1,7 @@
 {
   "id": "aio-explorer",
   "name": "Aio Explorer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.8.7",
   "description": "文件树增强：每文件夹排序与拖拽、专注筛选、文件计数、空白清理、文件置顶。界面支持中文与 English.",
   "author": "Alex",

@@ -2227,6 +2227,10 @@ var en = {
   liveApplyDone: "All switches re-applied.",
   liveStateOn: "on",
   liveStateOff: "off",
+  liveStateSizeDesktop: "{size} (this desktop) · mobile {mobile}",
+  liveStateSizeMobile: "{size} (this mobile) · desktop {desktop}",
+  applyNowFailed: "Switch changed, but it could not be applied right away: ",
+  saveAfterApplyFailed: "Applied right away, but writing data.json failed: ",
   titleAdjustGroupTitle: "Title adjust",
   subfolderInherit: "Subfolder colors follow top level",
   subfolderInheritHelp: "Stops the rainbow from reshuffling on every scroll. Each top-level folder keeps one fixed color, and all folders and guide lines under it share that color. Ported from your own CSS snippet; needs the colorful-folder switch above to be on.",
@@ -2531,6 +2535,10 @@ var zh = {
   liveApplyDone: "已重新应用全部开关。",
   liveStateOn: "生效中",
   liveStateOff: "未生效",
+  liveStateSizeDesktop: "{size}（本机电脑端） · 手机端 {mobile}",
+  liveStateSizeMobile: "{size}（本机手机端） · 电脑端 {desktop}",
+  applyNowFailed: "设置已切换，但未能即时应用：",
+  saveAfterApplyFailed: "设置已即时生效，但写入 data.json 失败：",
   // ===== 标题调整 =====
   titleAdjustGroupTitle: "标题调整",
   subfolderInherit: "子文件夹颜色跟随一级文件夹",
@@ -2546,7 +2554,13 @@ var zh = {
   titleWrapHelp: "文件名或文件夹名太长时，自动换成多行显示，不再用省略号截断。",
 };
 function translate(language, key) {
-  return language.startsWith("zh") ? zh[key] : en[key];
+  // 缺键兜底（2026-10-22）：语言表里漏了某个键时退回英文，英文也没有才显示键名本身，
+  // 界面上永远不该出现 "undefined"。
+  const table = String(language).startsWith("zh") ? zh : en;
+  const value = table[key];
+  if (value !== void 0) return value;
+  const fallback = en[key];
+  return fallback !== void 0 ? fallback : key;
 }
 
 // src/settings.ts
@@ -3358,7 +3372,9 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
               setting.addDropdown(
                 (dropdown) => dropdown.addOptions({ auto: t("auto"), zh: "\u4E2D\u6587", en: "English" }).setValue(p.settings.language).onChange(async (value) => {
                   await p.saveSettings({ language: value });
-                  p.refresh();
+                  // 2026-10-22：不只重画设置页 —— 命令名 / 图标提示 / 置顶面板一起刷，
+                  // 否则会停在「设置页英文、命令面板还是中文」的半截状态。
+                  p.applyLanguageChange();
                   this.refreshSettings();
                 })
               );
@@ -3827,11 +3843,13 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
               (el) => {
                 el.createDiv({ cls: "qt-live-name", text: t("titleStateFontSize") });
                 // 同时显示电脑端与手机端的值：本机实际生效的写在前面
+                // 两段文案都在 en/zh 表里（含 {size}/{mobile}/{desktop} 占位符），
+                // 不能再把中文写死在代码里 —— 否则英文界面里会漏出中文。
                 const mobileText = st.mobileFontSize ? st.mobileFontSize + "px" : t("liveStateOff");
                 const desktopText = st.fontSize ? st.fontSize + "px" : t("liveStateOff");
                 const text = st.isMobile
-                  ? mobileText + "（本机手机端） · 电脑端 " + desktopText
-                  : desktopText + "（本机电脑端） · 手机端 " + mobileText;
+                  ? t("liveStateSizeMobile").replace("{size}", mobileText).replace("{desktop}", desktopText)
+                  : t("liveStateSizeDesktop").replace("{size}", desktopText).replace("{mobile}", mobileText);
                 el.createDiv({ cls: "qt-live-size", text: st.fontSize || st.mobileFontSize ? text : t("liveStateOff") });
               });
           }
@@ -3888,7 +3906,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                   p.applyIconModuleSwitch();
                 } catch (error) {
                   console.error("[Aio Explorer] 开关即时应用失败", error);
-                  new import_obsidian3.Notice("设置已切换，但未能即时应用：" + error.message, 6e3);
+                  new import_obsidian3.Notice(t("applyNowFailed") + error.message, 6e3);
                 }
                 // ③ 视觉已经变了，立刻解锁开关 —— 绝不让「保存慢/保存卡住」把开关卡成灰色
                 toggle.setDisabled(false);
@@ -3896,7 +3914,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                 void p.refreshLiveStylesheet();
                 p.saveSettings({ iconColorfulFolder: value }).catch((error) => {
                   console.error("[Aio Explorer] 设置保存失败", error);
-                  new import_obsidian3.Notice("设置已即时生效，但写入 data.json 失败：" + error.message, 8e3);
+                  new import_obsidian3.Notice(t("saveAfterApplyFailed") + error.message, 8e3);
                 });
               })
             );
@@ -3915,7 +3933,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                   p.applyIconModuleSwitch();
                 } catch (error) {
                   console.error("[Aio Explorer] 开关即时应用失败", error);
-                  new import_obsidian3.Notice("设置已切换，但未能即时应用：" + error.message, 6e3);
+                  new import_obsidian3.Notice(t("applyNowFailed") + error.message, 6e3);
                 }
                 // ③ 视觉已经变了，立刻解锁开关 —— 绝不让「保存慢/保存卡住」把开关卡成灰色
                 toggle.setDisabled(false);
@@ -3923,7 +3941,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                 void p.refreshLiveStylesheet();
                 p.saveSettings({ iconCustomIcons: value }).catch((error) => {
                   console.error("[Aio Explorer] 设置保存失败", error);
-                  new import_obsidian3.Notice("设置已即时生效，但写入 data.json 失败：" + error.message, 8e3);
+                  new import_obsidian3.Notice(t("saveAfterApplyFailed") + error.message, 8e3);
                 });
               })
             );
@@ -3942,7 +3960,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                   p.applyIconModuleSwitch();
                 } catch (error) {
                   console.error("[Aio Explorer] 开关即时应用失败", error);
-                  new import_obsidian3.Notice("设置已切换，但未能即时应用：" + error.message, 6e3);
+                  new import_obsidian3.Notice(t("applyNowFailed") + error.message, 6e3);
                 }
                 // ③ 视觉已经变了，立刻解锁开关
                 toggle.setDisabled(false);
@@ -3950,7 +3968,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                 void p.refreshLiveStylesheet();
                 p.saveSettings({ subfolderInherit: value }).catch((error) => {
                   console.error("[Aio Explorer] 设置保存失败", error);
-                  new import_obsidian3.Notice("设置已即时生效，但写入 data.json 失败：" + error.message, 8e3);
+                  new import_obsidian3.Notice(t("saveAfterApplyFailed") + error.message, 8e3);
                 });
               })
             );
@@ -3978,7 +3996,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                   p.applyTitleAdjustSwitch();
                 } catch (error) {
                   console.error("[Aio Explorer] 标题换行即时应用失败", error);
-                  new import_obsidian3.Notice("设置已切换，但未能即时应用：" + error.message, 6e3);
+                  new import_obsidian3.Notice(t("applyNowFailed") + error.message, 6e3);
                 }
                 // ③ 视觉已经变了，立刻解锁开关 —— 绝不让「保存慢/保存卡住」把开关卡成灰色
                 toggle.setDisabled(false);
@@ -3986,7 +4004,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                 void p.refreshLiveStylesheet();
                 p.saveSettings({ titleWrapEnabled: value }).catch((error) => {
                   console.error("[Aio Explorer] 设置保存失败", error);
-                  new import_obsidian3.Notice("设置已即时生效，但写入 data.json 失败：" + error.message, 8e3);
+                  new import_obsidian3.Notice(t("saveAfterApplyFailed") + error.message, 8e3);
                 });
               })
             );
@@ -4005,13 +4023,13 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                   p.applyTitleAdjustSwitch();
                 } catch (error) {
                   console.error("[Aio Explorer] 开关即时应用失败", error);
-                  new import_obsidian3.Notice("设置已切换，但未能即时应用：" + error.message, 6e3);
+                  new import_obsidian3.Notice(t("applyNowFailed") + error.message, 6e3);
                 }
                 toggle.setDisabled(false);
                 void p.refreshLiveStylesheet();
                 p.saveSettings({ iconFolderBold: value }).catch((error) => {
                   console.error("[Aio Explorer] 设置保存失败", error);
-                  new import_obsidian3.Notice("设置已即时生效，但写入 data.json 失败：" + error.message, 8e3);
+                  new import_obsidian3.Notice(t("saveAfterApplyFailed") + error.message, 8e3);
                 });
               })
             );
@@ -4035,7 +4053,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                 p.applyTitleAdjustSwitch();
               } catch (error) {
                 console.error("[Aio Explorer] 标题字号即时应用失败", error);
-                new import_obsidian3.Notice("设置已切换，但未能即时应用：" + error.message, 6e3);
+                new import_obsidian3.Notice(t("applyNowFailed") + error.message, 6e3);
               }
               void p.refreshLiveStylesheet();
               // 写盘做 300ms 节流：拖动时不要每秒几十次落盘，停下后再存
@@ -4044,7 +4062,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                 p.titleFontSizeTimer = 0;
                 p.saveSettings({ titleFontSize: size }).catch((error) => {
                   console.error("[Aio Explorer] 设置保存失败", error);
-                  new import_obsidian3.Notice("设置已即时生效，但写入 data.json 失败：" + error.message, 8e3);
+                  new import_obsidian3.Notice(t("saveAfterApplyFailed") + error.message, 8e3);
                 });
               }, 300);
             };
@@ -4094,7 +4112,7 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                 p.mobileTitleFontSizeTimer = 0;
                 p.saveSettings({ mobileTitleFontSize: size }).catch((error) => {
                   console.error("[Aio Explorer] 设置保存失败", error);
-                  new import_obsidian3.Notice("设置已即时生效，但写入 data.json 失败：" + error.message, 8e3);
+                  new import_obsidian3.Notice(t("saveAfterApplyFailed") + error.message, 8e3);
                 });
               }, 300);
             };
@@ -4863,11 +4881,9 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
     // ===== aio-explorer：文件清理 =====
     // 图标用 lucide 的 trash
     this.cleanRibbonIcon = this.addRibbonIcon("trash", this.t("cleanBtn"), () => void this.runVaultCleanup());
-    this.addCommand({
-      id: "clean-files",
-      name: this.t("cleanBtn"),
-      callback: () => void this.runVaultCleanup()
-    });
+    // 2026-10-22：命令统一在 registerCommands() 里注册 ——
+    // 命令名是注册那一刻算好存进命令表的，语言切换后必须删掉重建才会跟着变。
+    this.registerCommands();
     // 命令是否可用随总开关变化：用 checkCallback 而不是直接删命令，
     // 这样开关切换后无需重启 Obsidian 就能生效。
     // 启动后延迟 1 秒跑一次（给 vault 一点加载时间）
@@ -4897,37 +4913,6 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
         this.cleanLastOpened = open.filter(Boolean);
       })
     );
-    this.addCommand({
-      id: "reload-order",
-      name: this.t("reload"),
-      callback: () => void this.reload(true)
-    });
-    this.addCommand({
-      id: "reset-root-order",
-      name: `${this.t("reset")} \u2014 ${this.t("root")}`,
-      callback: () => void this.resetFolder("/")
-    });
-    this.addCommand({
-      id: "toggle-show-hidden",
-      name: `${this.t("showHiddenOn")} / ${this.t("showHiddenOff")}`,
-      callback: () => void this.toggleShowHidden()
-    });
-    this.addCommand({
-      id: "save-root-as-custom",
-      name: `${this.t("saveAsCustom")} \u2014 ${this.t("root")}`,
-      callback: () => void this.saveAsCustom("/")
-    });
-    this.addCommand({
-      id: "toggle-focus",
-      name: this.t("focusCommand"),
-      callback: () => {
-        if (!this.isFocusEnabledHere()) {
-          new import_obsidian4.Notice(this.t("focusDisabledHere"), 3e3);
-          return;
-        }
-        this.toggleFocusByCommand();
-      }
-    });
     this.registerEvent(
       this.app.workspace.on("layout-change", () => {
         this.syncViews();
@@ -5163,6 +5148,78 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
     await this.flushChanges();
     await this.store.saveSettings(patch);
     this.refresh();
+  }
+  /* ================================================================
+     语言切换（2026-10-22 新增）
+     问题：Obsidian 的「命令名 / 侧栏图标提示」是注册那一刻就固定下来的字符串，
+     切换语言后不会自动更新，于是英文界面里命令面板仍是中文。
+     这里把它们集中起来，语言一变就整批重建/改写。
+     ================================================================ */
+  /** 本插件所有命令的清单（id + 取名字的函数 + 行为）。名字用函数是为了每次重建都读最新语言。 */
+  commandSpecs() {
+    return [
+      { id: "clean-files", name: () => this.t("cleanBtn"), run: () => void this.runVaultCleanup() },
+      { id: "reload-order", name: () => this.t("reload"), run: () => void this.reload(true) },
+      { id: "reset-root-order", name: () => `${this.t("reset")} \u2014 ${this.t("root")}`, run: () => void this.resetFolder("/") },
+      { id: "toggle-show-hidden", name: () => `${this.t("showHiddenOn")} / ${this.t("showHiddenOff")}`, run: () => void this.toggleShowHidden() },
+      { id: "save-root-as-custom", name: () => `${this.t("saveAsCustom")} \u2014 ${this.t("root")}`, run: () => void this.saveAsCustom("/") },
+      {
+        id: "toggle-focus",
+        name: () => this.t("focusCommand"),
+        run: () => {
+          if (!this.isFocusEnabledHere()) {
+            new import_obsidian4.Notice(this.t("focusDisabledHere"), 3e3);
+            return;
+          }
+          this.toggleFocusByCommand();
+        }
+      }
+    ];
+  }
+  /** 注册全部命令；重复调用会先删后建，所以不会在命令面板里出现两份。 */
+  registerCommands() {
+    for (const spec of this.commandSpecs()) {
+      try {
+        if (typeof this.removeCommand === "function") this.removeCommand(spec.id);
+      } catch (error) {
+        console.debug("[Aio Explorer] 命令重建失败（可忽略，重启后生效）", error);
+      }
+      this.addCommand({ id: spec.id, name: spec.name(), callback: spec.run });
+    }
+  }
+  /** 语言变了以后，把不在设置页里、需要手动重画的界面刷一遍。 */
+  applyLanguageChange() {
+    // ① 命令面板里的命令名
+    this.registerCommands();
+    // ② 侧栏图标的悬浮提示（Obsidian 用 aria-label / data-tooltip 两处）
+    const retitle = (el, text) => {
+      if (!el || typeof el.setAttribute !== "function") return;
+      el.setAttribute("aria-label", text);
+      el.setAttribute("data-tooltip-position", "right");
+      el.setAttribute("data-tooltip", text);
+    };
+    retitle(this.cleanRibbonIcon, this.t("cleanBtn"));
+    // 置顶图标的文案由「文件置顶」模块自己的语言表提供（键名 title），
+    // 主表里没有这个键，所以优先问模块要。
+    retitle(this.pinRibbonIcon, this.pinModule ? this.pinModule.t("title") : this.t("pinGroupTitle"));
+    // ③ 专注模式 / 拖拽排序图标的自绘 aria-label、侧栏数字等都走 syncNavIcons
+    try {
+      this.syncNavIcons();
+    } catch (error) {
+      console.debug("[Aio Explorer] 图标提示刷新失败", error);
+    }
+    // ④ 文件置顶面板（命令名 + 卡片 + 工具栏一起重建）
+    try {
+      this.pinModule?.refreshLanguage();
+    } catch (error) {
+      console.debug("[Aio Explorer] 置顶面板语言刷新失败", error);
+    }
+    // ⑤ 文件列表（右键菜单是即时生成的，这里只需重画拖拽相关状态）
+    try {
+      this.refresh();
+    } catch (error) {
+      console.debug("[Aio Explorer] 刷新失败", error);
+    }
   }
   /**
    * ★ 2026-10-21 新增：重建文件列表前先记住滚动位置，重建后原样放回去。
@@ -6927,7 +6984,13 @@ var __qtPinEmbed = (() => {
     return language === "auto" ? appLanguage.toLowerCase().startsWith("zh") ? "zh" : "en" : language;
   }
   function translate(language, key) {
-    return (language === "zh" ? zh : en)[key];
+    // 缺键兜底（2026-10-22）：中文表里某个键漏了，就退回英文；
+    // 英文也没有才显示键名本身 —— 界面上永远不该出现 "undefined"。
+    const table = language === "zh" ? zh : en;
+    const value = table[key];
+    if (value !== void 0) return value;
+    const fallback = en[key];
+    return fallback !== void 0 ? fallback : key;
   }
 
   // src/view.ts
@@ -7139,6 +7202,13 @@ var __qtPinEmbed = (() => {
       this.lastLanguage = this.plugin.language;
       this.containerLabels.forEach(({ el, key }) => el.setText(this.t(key)));
       this.buildToolbar();
+      // 2026-10-22：侧栏标题来自 getDisplayText()，Obsidian 只在需要时才重算，
+      // 语言一切换得主动喊它更新，否则标题栏还挂着旧语言的文字。
+      try {
+        this.leaf?.updateHeader?.();
+      } catch (error) {
+        console.debug("[Aio Explorer][\u7B14\u8BB0\u7F6E\u9876] \u6807\u9898\u5237\u65B0\u5931\u8D25", error);
+      }
       this.sync();
     }
     sync() {
@@ -8214,48 +8284,21 @@ var __qtPinEmbed = (() => {
       return this.app.workspace;
     }
     get language() {
-      return resolveLanguage(this.data.language, (0, import_obsidian5.getLanguage)());
+      // 2026-10-22 修复：面板语言必须跟随插件「通用」里的总语言设置。
+      // 旧实现只看 this.data.language（默认 "auto" → 永远跟着 Obsidian 走），
+      // 于是把插件语言设成 English、而 Obsidian 本身是中文时，
+      // 文件置顶面板仍然整片中文 —— 用户看到的就是「切了语言没全变」。
+      // 现在优先级：宿主设置（auto/zh/en）→ 本模块旧字段（兼容老数据）→ 跟随 Obsidian。
+      const host = this.host && this.host.settings ? this.host.settings.language : void 0;
+      const chosen = host && host !== "auto" ? host : this.data.language;
+      return resolveLanguage(chosen || "auto", (0, import_obsidian5.getLanguage)());
     }
     /** 读取数据：优先宿主配置里的 pinData，否则从旧插件 data.json 一次性迁移。 */
     async attach() {
       await this.loadData();
       this.host.registerView(PIN_VIEW_TYPE, (leaf) => new FolderPinView(leaf, this, PIN_VIEW_TYPE));
-      this.host.addCommand({
-        id: "pin-open-view",
-        name: this.t("openView"),
-        callback: () => {
-          if (!this.host.isPinEnabledHere()) {
-            disabledNotice(this.language === "zh");
-            return;
-          }
-          void this.activateView();
-        }
-      });
-      this.host.addCommand({
-        id: "pin-reveal-active-file",
-        name: this.t("reveal"),
-        callback: () => {
-          if (!this.host.isPinEnabledHere()) {
-            disabledNotice(this.language === "zh");
-            return;
-          }
-          void this.activateView().then(() => this.views().forEach((view) => view.revealActive()));
-        }
-      });
-      this.host.addCommand({
-        id: "pin-toggle-selection-mode",
-        name: this.t("selectionMode"),
-        callback: () => {
-          if (!this.host.isPinEnabledHere()) {
-            disabledNotice(this.language === "zh");
-            return;
-          }
-          void this.activateView().then(() => {
-            var _a;
-            return (_a = this.views()[0]) == null ? void 0 : _a.toggleSelectionMode();
-          });
-        }
-      });
+      // 2026-10-22：命令注册抽成方法，语言切换时先删后建，命令面板才会跟着变语言。
+      this.registerCommands();
       this.host.registerEvent(this.workspace.on("file-menu", (...args) => {
         const menu = args[0];
         const file = args[1];
@@ -8366,8 +8409,65 @@ var __qtPinEmbed = (() => {
       this.views().forEach((view) => view.sync());
     }
     refreshLanguage() {
+      // 语言变了：卡片/工具栏文案重画（view.localize 内部会比对 this.plugin.language），
+      // 命令名是注册时固定的，必须删掉重建。
       this.views().forEach((view) => view.localize());
+      this.registerCommands();
       this.persist();
+    }
+    /**
+     * 本模块的命令注册。为什么要单独一个方法：
+     * Obsidian 的命令名是「注册那一刻」算好存进命令表的，之后改语言不会自动更新，
+     * 所以语言切换时要 removeCommand → addCommand 走一遍（先删后建，避免重复项）。
+     */
+    registerCommands() {
+      const specs = [
+        {
+          id: "pin-open-view",
+          name: () => this.t("openView"),
+          run: () => {
+            if (!this.host.isPinEnabledHere()) {
+              disabledNotice(this.language === "zh");
+              return;
+            }
+            void this.activateView();
+          }
+        },
+        {
+          id: "pin-reveal-active-file",
+          name: () => this.t("reveal"),
+          run: () => {
+            if (!this.host.isPinEnabledHere()) {
+              disabledNotice(this.language === "zh");
+              return;
+            }
+            void this.activateView().then(() => this.views().forEach((view) => view.revealActive()));
+          }
+        },
+        {
+          id: "pin-toggle-selection-mode",
+          name: () => this.t("selectionMode"),
+          run: () => {
+            if (!this.host.isPinEnabledHere()) {
+              disabledNotice(this.language === "zh");
+              return;
+            }
+            void this.activateView().then(() => {
+              var _a;
+              return (_a = this.views()[0]) == null ? void 0 : _a.toggleSelectionMode();
+            });
+          }
+        }
+      ];
+      for (const spec of specs) {
+        try {
+          // 老版本 Obsidian 没有 Plugin.removeCommand，没有就跳过（下次重启自然更新）
+          if (typeof this.host.removeCommand === "function") this.host.removeCommand(spec.id);
+        } catch (error) {
+          console.debug("[Aio Explorer][\u7B14\u8BB0\u7F6E\u9876] \u547D\u4EE4\u91CD\u5EFA\u5931\u8D25", error);
+        }
+        this.host.addCommand({ id: spec.id, name: spec.name(), callback: spec.run });
+      }
     }
     scheduleRefresh() {
       if (this.refreshTimer !== void 0) window.clearTimeout(this.refreshTimer);
