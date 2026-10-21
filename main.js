@@ -608,6 +608,25 @@ function applyPin(items, pinned) {
   top.sort((a, b) => rank.get(a.file.name) - rank.get(b.file.name));
   return [...top, ...rest];
 }
+/**
+ * ★★★ Obsidian 文件树对「文件夹之间」的原生排序比较器
+ * （obsidian.asar 1.14.4 getSortedFolderItems 实证，逐字符复刻）：
+ *   n.sort((e, n) => {
+ *     const i = e instanceof TFolder, r = n instanceof TFolder;
+ *     return i || r
+ *       ? (i && !r ? -1 : r && !i ? 1 : BT(e.name, n.name))   // 两边都是文件夹 → BT
+ *       : qL[this.sortOrder](e, n);                          // 两边都是文件 → 用户的排序设置
+ *   });
+ *   BT = new Intl.Collator(void 0, { usage: "sort", sensitivity: "base", numeric: true }).compare
+ * 三个要点：
+ *   1. sortOrder（按名称/修改时间/创建时间）【只作用于文件】；
+ *      文件夹之间永远走 BT，与用户的排序设置无关；
+ *   2. sensitivity:"base" → 不区分大小写、不区分重音；
+ *   3. numeric:true → 自然数字序（"笔记9" 排在 "笔记10" 前面）。
+ * 多彩文件夹的顺序表必须用它才能和屏幕显示顺序逐行一致
+ * （以前用 (a<b?-1:a>b?1:0) 纯码元序，正是"颜色看着乱"的根因之一）。
+ */
+const NATIVE_FOLDER_COLLATOR = new Intl.Collator(void 0, { usage: "sort", sensitivity: "base", numeric: true });
 function renameOrder(order, oldPath, newPath) {
   const next = /* @__PURE__ */ Object.create(null);
   const oldParent = parentPath(oldPath), newParent = parentPath(newPath);
@@ -934,7 +953,7 @@ function resolveTreeHit(tree, rows, id, rowHeight, x, y, previous = emptyHit, ho
 
 // src/presentation.ts
 var displayName = (name) => name.replace(/\.md$/i, "");
-function destinationLabel(tree, target, source, t) {
+function destinationLabel(tree, target, source, t, modeOf) {
   const original = childrenOf(tree, target.parentId);
   const siblings = original.filter((id) => id !== source);
   const before = target.beforeId === source ? original[original.indexOf(source) + 1] ?? null : target.beforeId;
@@ -942,10 +961,17 @@ function destinationLabel(tree, target, source, t) {
   const previous = index > 0 ? tree.nodes[siblings[index - 1]] : null;
   const next = before ? tree.nodes[before] : null;
   const format = (key) => t(key).replace("{previous}", displayName(previous?.name ?? "")).replace("{next}", displayName(next?.name ?? ""));
+  let position = previous && next ? format("positionBetween") : previous ? format("positionAfter") : next ? format("positionBefore") : t("positionFirst");
+  // 2026-10-22：目标文件夹是按时间/名称排序时，选的位置不会生效，
+  // 选择器里必须直说，不能假装"插到 A 和 B 中间"。
+  if (modeOf) {
+    const mode = modeOf(target.parentId ?? "/");
+    if (mode && mode !== "custom") position += " \xB7 " + t("positionByRule");
+  }
   return {
     directory: target.parentId ? tree.nodes[target.parentId].name : t("root"),
     path: target.parentId ?? t("root"),
-    position: previous && next ? format("positionBetween") : previous ? format("positionAfter") : next ? format("positionBefore") : t("positionFirst")
+    position
   };
 }
 
@@ -1245,8 +1271,13 @@ var DragController = class {
       const path = el.dataset.path;
       const parent = parentPath(path);
       const config = this.plugin.settings.folderSettings?.[parent];
-      const customMode = !config?.sortOrder || config.sortOrder === "custom";
-      const allowed = !this.view.searchQuery && path !== "/" && !excluded(parent, this.plugin.settings.excluded) && customMode;
+      // 2026-10-22 修复：这里原先还要求「父文件夹必须是自定义排序」才给拖拽，
+      // 结果时间/名称排序的文件夹整片掉回 Obsidian 原生拖拽 —— 没有长按抬起、
+      // 没有手柄、没有位置提示，用户感觉"拖拽排序坏了"。
+      // 现在把两件事拆开：
+      //   · 「这一行能不能被拖」= 只要不是排除目录/搜索中/库根，就允许（走插件机制）；
+      //   · 「同一个文件夹里能不能换顺序」= 由 move() 按排序模式判断并给明确提示。
+      const allowed = !this.view.searchQuery && path !== "/" && !excluded(parent, this.plugin.settings.excluded);
       const name = baseName(path);
       el.classList.toggle("qt-pinned-item", !!config?.pinned?.includes(name));
       el.classList.toggle("qt-hidden-item", !!this.plugin.settings.showHidden && !!config?.hidden?.includes(name));
@@ -1769,7 +1800,7 @@ var DragController = class {
         for (const candidate of this.hit.candidates) {
           const option = this.dom.createDiv();
           option.className = "qt-picker-option";
-          const description = destinationLabel(this.data.tree, candidate, p.id, this.plugin.t);
+          const description = destinationLabel(this.data.tree, candidate, p.id, this.plugin.t, (path) => this.plugin.sortModeOf(path));
           const icon = this.dom.createSpan();
           icon.className = "qt-picker-icon";
           (0, import_obsidian2.setIcon)(icon, "corner-down-right");
@@ -2047,6 +2078,13 @@ var en = {
   dragSortHelp: "When off, the file explorer's drag is left to Obsidian, so dragging a note into the editor inserts a link. Sorting, hiding, pinning and focus mode are unaffected. You can also toggle it from the button in the explorer header.",
   dragSortOn: "Turn off drag to reorder",
   dragSortOff: "Turn on drag to reorder",
+  // ===== 拖拽与排序模式的关系（2026-10-22）=====
+  autoCustomOnDrop: "Switch to custom order when dropping in",
+  autoCustomOnDropHelp: "When you drop a file into a folder that is sorted by time or name, that folder is switched to Custom order so the position you picked is kept. Off: the file simply lands wherever the folder's sort rule puts it.",
+  dragSortLocked: "This folder is sorted by {mode}, so its order cannot be rearranged by hand. Pick another folder to move the item to, or use right-click → Sort order → Custom order.",
+  movedByRule: "Moved. Its position is decided by this folder's sort rule.",
+  movedAutoCustom: "Moved. The folder was switched to Custom order, so your position is kept.",
+  positionByRule: "position set by this folder's sort rule",
   linkDragTip: "Drag into the editor to insert a link",
   linkDragTipHelp: "Drag a note from the file explorer into a note to insert a link — turn off Drag to reorder in settings first.",
   countGroupTitle: "File count",
@@ -2354,6 +2392,13 @@ var zh = {
   dragSortHelp: "关闭后不再接管文件列表的拖拽，此时把笔记拖进正文可插入链接；排序、隐藏、置顶、专注等其他功能不受影响。也可直接点文件列表右上角的开关按钮。",
   dragSortOn: "关闭拖拽排序",
   dragSortOff: "开启拖拽排序",
+  // ===== 拖拽与排序模式的关系（2026-10-22）=====
+  autoCustomOnDrop: "拖入时切换为自定义排序",
+  autoCustomOnDropHelp: "把文件拖进「按时间/按名称排序」的文件夹时，自动把该文件夹切成 Custom order，保留你选的位置。关闭时：文件按那个文件夹的排序规则落位，你选的位置不生效。",
+  dragSortLocked: "这个文件夹当前按{mode}排序，不能手动调整顺序。可以拖到别的文件夹，或在右键「Sort order」里改回「Custom order」。",
+  movedByRule: "已移动。位置由该文件夹的排序规则决定。",
+  movedAutoCustom: "已移动。该文件夹已切换为 Custom order，你选的位置已生效。",
+  positionByRule: "位置由该文件夹的排序规则决定",
   linkDragTip: "拖到正文插入链接",
   linkDragTipHelp: "把笔记从左侧文件列表拖到右侧笔记正文，即可插入链接——需先关闭「拖拽排序」（按钮在右上角或设置里都行）。",
   countGroupTitle: "文件计数",
@@ -2613,6 +2658,8 @@ function readSettings(data) {
   if (typeof raw.showLoadNotice === "boolean") result.showLoadNotice = raw.showLoadNotice;
   // aio-explorer：拖拽排序总开关（false = 不接管，原生拖拽可插入链接）
   if (typeof raw.dragSortEnabled === "boolean") result.dragSortEnabled = raw.dragSortEnabled;
+  // aio-explorer：拖入按规则排序的文件夹时，是否自动切成自定义排序（2026-10-22）
+  if (typeof raw.autoCustomOnDrop === "boolean") result.autoCustomOnDrop = raw.autoCustomOnDrop;
   // ===== 专注模式 =====
   if (typeof raw.showFocusMenu === "boolean") result.showFocusMenu = raw.showFocusMenu;
   if (typeof raw.showFocusIcon === "boolean") result.showFocusIcon = raw.showFocusIcon;
@@ -2747,6 +2794,8 @@ function loadSettings(data, excluded2, skipMigrate = false) {
     showHidden: false,
     showLoadNotice: true,
     dragSortEnabled: true,
+    // 拖入按规则排序的文件夹时，是否自动切成自定义排序（默认关，保持原样落位）
+    autoCustomOnDrop: false,
     showFocusMenu: true,
     showFocusIcon: true,
     // 模块总开关：默认全开（保持升级前的行为）
@@ -3447,6 +3496,26 @@ var ExplorerSettingsTab = class extends import_obsidian3.PluginSettingTab {
                     await p.setDragSortEnabled(value);
                   } finally {
                     this.refreshSettings();
+                  }
+                })
+              );
+            }
+          },
+          {
+            // 2026-10-22：拖拽排序与「按时间/名称排序」的关系设置。
+            // 关（默认）：拖进按规则排序的文件夹，文件按规则落位，你选的位置不生效；
+            // 开：自动把那个文件夹切成 Custom order，位置说到做到。
+            name: t("autoCustomOnDrop"),
+            desc: t("autoCustomOnDropHelp"),
+            aliases: ["custom", "sort", "drop", "\u81EA\u5B9A\u4E49", "\u6392\u5E8F"],
+            render: (setting) => {
+              setting.addToggle(
+                (toggle) => toggle.setValue(p.settings.autoCustomOnDrop === true).onChange(async (value) => {
+                  toggle.setDisabled(true);
+                  try {
+                    await p.saveSettings({ autoCustomOnDrop: value });
+                  } finally {
+                    toggle.setDisabled(false);
                   }
                 })
               );
@@ -4395,6 +4464,20 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
   }
   sortModeOf(folderPath) {
     return this.configOf(folderPath).sortOrder ?? "custom";
+  }
+  /** 排序模式的中/英文显示名（提示语里要用，例如"该文件夹当前按创建时间排序"）。 */
+  sortModeName(mode) {
+    const key = {
+      custom: "sortCustom",
+      "name-asc": "sortNameAsc",
+      "name-desc": "sortNameDesc",
+      "created-new": "sortCreatedNew",
+      "created-old": "sortCreatedOld",
+      "modified-new": "sortModifiedNew",
+      "modified-old": "sortModifiedOld",
+      native: "sortNative"
+    }[mode];
+    return key ? this.t(key) : String(mode);
   }
   explorerView() {
     for (const leaf of this.app.workspace.getLeavesOfType("file-explorer")) {
@@ -5599,10 +5682,37 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
    * 如果按"DOM 里第几个"算颜色序号，滚动一下颜色就全变了。
    * 所以顺序必须来自【整个库】，而不是当前 DOM。
    *
-   * 做法：递归遍历 vault（从根开始），按 Obsidian 自己的文件夹/文件排序规则
-   * （文件夹在前、名称字典序）建立：
-   *   firstLevel : 根下所有文件夹的路径数组
-   *   groups     : Map<父路径, 该父目录下所有文件夹的路径数组>
+   * ★★★ 2026-10-22 重写：顺序表必须与「屏幕显示顺序」同源
+   *   （多彩文件夹"乱序"bug 根因：用户看到颜色乱，实际是稳定的错位）
+   *   旧实现用 `folders.sort((a,b)=>(a<b?-1:a>b?1:0))` 纯 UTF-16 码元序编号，
+   *   与屏幕显示顺序是两张表 → 颜色整体错位。
+   *   而且"只按名称排"也不够：屏幕上文件夹的位置还受插件自己的
+   *   始终隐藏目录 / 隐藏名单 / 每文件夹排序模式（含自定义手动顺序）/ 置顶 影响
+   *   —— Obsidian 1.14.4 原生没有手动排文件夹的功能，这些全是本插件提供的，
+   *   用户完全可能让"屏幕第 3 个"不是"名称第 3 个"。
+   *
+   * 正解：完整复刻渲染管线（attachSort 里 sorted() 的同一批函数、同一份数据）：
+   *   ① 原生顺序 = NATIVE_FOLDER_COLLATOR（obsidian.asar 实证的文件夹比较器）；
+   *   ② applyAutoHide（始终隐藏的目录）；
+   *   ③ 专注模式【故意不纳入】：那是临时视图状态，纳入会导致开关一次专注全库变色；
+   *      颜色按"非专注时的全局位置"算，与"搜索时不重排"的策略一致；
+   *   ④ excluded 父夹：渲染管线到此提前收工（后续隐藏/排序/置顶全部不生效），
+   *      顺序表也同样收手，保持原生序；
+   *   ⑤ applyHide（隐藏名单，仅 showHidden 关时生效）；
+   *   ⑥ applySortMode（custom=手动顺序，未录到的按原生序尾随；
+   *      name-asc/name-desc、created-new/old、modified-new/old、native 各路模式）；
+   *   ⑦ applyPin（置顶提前）。
+   * 复用的全是渲染管线自己那几只函数 + 同一份 vault 对象
+   * （.file.stat 有无两边看到的是同一个对象，完全一致）→ 结果必然一致。
+   *
+   * ★ 根目录键的坑：渲染管线用 folder.path 查设置，库根的 path 是 "/"；
+   *   而 markFirstLevelFolders 按"一级文件夹 data-path 不含 /"反推父路径为 ""，
+   *   groups 图必须继续用 "" 作根键。所以查 folderSettings/order/excluded 时
+   *   要把 "" 换算成 "/"（settingsKey），否则根目录的手动顺序/置顶/隐藏全部失效。
+   *
+   * 产出：
+   *   firstLevel : 根下所有文件夹的路径数组（= 屏幕上一级文件夹的顺序）
+   *   groups     : Map<父路径, 该父目录下所有文件夹的路径数组>（根键为 ""）
    * 用 Map 存 groups 便于 O(1) 查兄弟组。
    *
    * 拿不到 vault（极端情况）时返回 null，调用方会走兜底分支。
@@ -5611,6 +5721,10 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
     const vault = this.app?.vault;
     const root = vault?.getRoot?.();
     if (!root || !Array.isArray(root.children)) return null;
+    const settings = this.store?.settings ?? {};
+    const order = this.store?.order ?? /* @__PURE__ */ Object.create(null);
+    const rules = Array.isArray(settings.excluded) ? settings.excluded : [];
+    const folderSettings = settings.folderSettings ?? /* @__PURE__ */ Object.create(null);
     const firstLevel = [];
     const groups = new Map();
     const visit = (parentPath, children) => {
@@ -5619,19 +5733,35 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
         if (!child || typeof child.path !== "string") continue;
         // 只收文件夹（vault 里 TFolder 有 children 数组，文件没有）
         if (!Array.isArray(child.children)) continue;
-        folders.push(child.path);
-        groups.set(child.path, []);
+        folders.push(child);
       }
-      folders.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-      groups.set(parentPath, folders);
-      if (parentPath === "") firstLevel.push(...folders);
+      // ① 原生顺序：核心 getSortedFolderItems 里"两边都是文件夹"的分支
+      //    走 BT(e.name, n.name)，即 NATIVE_FOLDER_COLLATOR（见其定义处注释）
+      folders.sort((a, b) => NATIVE_FOLDER_COLLATOR.compare(a.name, b.name));
+      let list = folders.map((file) => ({ file }));
+      // ② 始终隐藏的目录（渲染管线的第一步过滤）
+      list = applyAutoHide(list, settings.autoHidePaths);
+      // ③ 专注模式跳过（见上方注释）
+      // ④ 排除目录：与渲染管线一致——父夹被排除时后续的隐藏/排序/置顶全部不生效
+      const settingsKey = parentPath === "" ? "/" : parentPath;
+      if (!excluded(settingsKey, rules)) {
+        const config = folderSettings[settingsKey];
+        // ⑤ 隐藏名单
+        if (!settings.showHidden && config?.hidden?.length) list = applyHide(list, config.hidden);
+        // ⑥ 排序模式（custom = 手动顺序，未录到的保持原生序尾随）
+        list = applySortMode(list, config?.sortOrder ?? "custom", order[settingsKey]);
+        // ⑦ 置顶提前
+        list = applyPin(list, config?.pinned);
+      }
+      const paths = list.map((item) => item.file.path);
+      groups.set(parentPath, paths);
+      if (parentPath === "") firstLevel.push(...paths);
       for (const child of children) {
         if (!child || !Array.isArray(child.children)) continue;
         visit(child.path, child.children);
       }
     };
     visit("", root.children);
-    firstLevel.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
     return { firstLevel, groups };
   }
 
@@ -5717,10 +5847,11 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
           item.el.classList?.add(FOLDER_COLOR_CLASS + ((idx % 7) + 1));
         }
       } else {
-        // 拿不到完整顺序时的兜底：按当前可见项的 data-path 字典序排
-        // （比什么都不做要好，至少颜色不会是灰的）
+        // 拿不到完整顺序时的兜底：按当前可见项的【名称】用原生比较器排
+        // （Obsidian 对文件夹就是这个名字比较器，见 NATIVE_FOLDER_COLLATOR 注释；
+        //   比什么都不做要好，至少颜色不会是灰的，且顺序与主分支一致）
         const firstLevel = visible.filter((x) => x.path.indexOf("/") === -1);
-        firstLevel.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+        firstLevel.sort((a, b) => NATIVE_FOLDER_COLLATOR.compare(baseName(a.path), baseName(b.path)));
         for (let i = 0; i < firstLevel.length; i++) {
           firstLevel[i].el.classList?.add(FIRST_LEVEL_CLASS);
           firstLevel[i].el.classList?.add(FIRST_LEVEL_CLASS + "-c" + ((i % 7) + 1));
@@ -5733,7 +5864,7 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
           groups.get(parentPath).push(item);
         }
         for (const items of groups.values()) {
-          items.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+          items.sort((a, b) => NATIVE_FOLDER_COLLATOR.compare(baseName(a.path), baseName(b.path)));
           for (let i = 0; i < items.length; i++) {
             items[i].el.classList?.add(FOLDER_COLOR_CLASS + ((i % 7) + 1));
           }
@@ -6636,6 +6767,15 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
       if (target.beforeId === path) return;
       if (target.beforeId && this.app.vault.getAbstractFileByPath(target.beforeId)?.parent !== folder)
         throw new Error("changed");
+      // ===== 2026-10-22：拖拽与排序模式的冲突处理 =====
+      // 只有「自定义排序」的文件夹才谈得上手动换顺序；按时间/名称/原生排序的文件夹，
+      // 手动顺序写了也不会显示（applySortMode 会按规则重排），所以同文件夹内直接拒绝并说清楚。
+      const destMode = this.settings.folderSettings?.[destination]?.sortOrder ?? "custom";
+      const sameFolder = source === destination;
+      if (sameFolder && destMode !== "custom") {
+        new import_obsidian4.Notice(this.t("dragSortLocked").replace("{mode}", this.sortModeName(destMode)), 5e3);
+        return;
+      }
       // aio-explorer 修复：原生 getSortedFolderItems 只返回「已渲染到DOM」的子项，
       // 目标文件夹处于折叠状态时会返回空数组，导致 names 为空 → 落盘时把目标目录
       // 原有顺序全部丢失，且 index 算错抛 "changed"（跨文件夹拖拽报错弹窗的根因）。
@@ -6669,24 +6809,39 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
           this.ownRenames.delete(path);
         }
       }
+      // 方案 2 的开关：拖进按规则排序的文件夹时，按用户设置把它切成自定义排序，
+      // 位置才保得住。
+      const switchedToCustom = !sameFolder && destMode !== "custom" && this.settings.autoCustomOnDrop === true;
       await this.store.update((order, settings) => {
         if (source !== destination) {
           order = renameOrder(order, path, nextPath);
           settings.excluded = renameExclusions(settings.excluded, path, nextPath);
           settings.folderSettings = renameFolderSettings(settings.folderSettings, path, nextPath);
         }
-        const ordered = sortItems(names, order[destination], (name) => name);
-        const before = target.beforeId ? baseName(target.beforeId) : null;
-        //aio-explorer 修复：before 不在列表里时不再直接报错（改为追加到末尾），
-        // 避免跨文件夹/折叠目录下拖拽时弹出「拖拽期间列表发生变化」。
-        let index = before === null ? ordered.length : ordered.indexOf(before);
-        if (index < 0) index = ordered.length;
-        ordered.splice(index, 0, file.name);
-        order[destination] = ordered;
+        // 只有自定义排序才写手动顺序：按规则排序的文件夹写了也没人读，
+        // 攒在 data.json 里只是垃圾数据（2026-10-22）。
+        if (destMode === "custom" || switchedToCustom) {
+          const ordered = sortItems(names, order[destination], (name) => name);
+          const before = target.beforeId ? baseName(target.beforeId) : null;
+          //aio-explorer 修复：before 不在列表里时不再直接报错（改为追加到末尾），
+          // 避免跨文件夹/折叠目录下拖拽时弹出「拖拽期间列表发生变化」。
+          let index = before === null ? ordered.length : ordered.indexOf(before);
+          if (index < 0) index = ordered.length;
+          ordered.splice(index, 0, file.name);
+          order[destination] = ordered;
+        }
         return order;
       });
+      // 放在 rename + 落盘之后：万一失败，不会留下"模式被改了但文件没动"的中间态。
+      if (switchedToCustom) {
+        await this.patchFolder(destination, { sortOrder: "custom" });
+        new import_obsidian4.Notice(this.t("movedAutoCustom"), 2500);
+      } else if (!sameFolder && destMode !== "custom") {
+        new import_obsidian4.Notice(this.t("movedByRule"), 2500);
+      } else {
+        new import_obsidian4.Notice(this.t("moved"), 1500);
+      }
       this.refresh();
-      new import_obsidian4.Notice(this.t("moved"), 1500);
     } catch (error) {
       let failure = error;
       if (movedFile) {

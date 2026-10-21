@@ -20,6 +20,21 @@ devices.
   English). Earlier the live-status panel and the file pin view could stay in
   Chinese after switching to English.
 - Error notices are no longer hard-coded to Chinese.
+- **Drag and drop no longer breaks in folders that are not sorted manually.**
+  In a folder sorted by time or name, the plugin's own drag (long-press lift,
+  handle, position picker) is now used instead of falling back to the system
+  drag. Moving an item to another folder always works; rearranging inside such
+  a folder is refused with a clear explanation. New setting: *Switch to custom
+  order when dropping in* (off by default) — turn it on and dropping into a
+  time-sorted folder switches that folder to Custom order so the position you
+  picked is kept.
+- **Colorful folder icons no longer look shuffled.** The seven-color cycle now
+  follows the exact order folders appear on screen — per-folder sort modes,
+  custom manual order, pins and hidden items all count. Previously colors were
+  assigned along a different ordering rule, so folder names mixing digits,
+  Latin letters and CJK characters ended up out of sequence. Move, rename, pin,
+  hide or delete a folder and the colors re-flow with it, keeping the
+  red → orange → yellow → green → cyan → blue → purple cycle intact.
 
 ---
 
@@ -185,6 +200,8 @@ are preserved in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 - **语言切换真正覆盖所有界面**：设置页、右键菜单、当前生效状态面板、文件置顶面板、侧栏图标提示、命令面板，全部跟随你在「通用」里选的语言（跟随 Obsidian / 中文 / English）。此前把语言切成英文后，状态面板和文件置顶面板仍会显示中文。
 - 部分只在中文出现的报错提示，现在也按语言显示。
+- **修掉「非自定义排序文件夹里拖拽失灵」**：按创建/修改时间、按名称排序的文件夹，现在也用插件自己的拖拽（长按抬起、右侧手柄、位置选择器），不再掉回系统原生拖拽。把条目拖到别的文件夹始终可用；在同一个按规则排序的文件夹里换顺序会被明确拒绝并说明原因。新增设置「拖入时切换为自定义排序」（默认关）：打开后，把文件拖进按规则排序的文件夹会自动把该文件夹切成 Custom order，你选的位置算数。
+- **修掉「多彩文件夹颜色看着乱」**：七色循环（红→橙→黄→绿→青→蓝→紫）现在严格按文件夹在屏幕上的实际顺序发色号——每文件夹的排序模式、自定义手动顺序、置顶、隐藏全都算数。此前颜色按另一套排序规则编号，名字里数字、英文、中文混用时会整体错位。现在拖动、改名、置顶、隐藏、删除文件夹，颜色都会跟着位置顺移，循环始终完整。
 
 ### 核心功能
 
