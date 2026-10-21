@@ -125,10 +125,21 @@
 .qt-settings .qt-language-field > .setting-item-info {
   flex: 1;
   min-width: 0;
+  max-width: none;
 }
 .qt-settings .qt-language-field > .setting-item-control {
   flex: 0 0 auto;
   width: auto;
+}
+/* 防污染护盾（2026-10-22）：有第三方插件（实测 getnote-importer）写出裸的
+   .setting-item-info { min-width:170px; max-width:220px; flex-shrink:0 }
+   全局规则，会把本插件设置页每一行的信息栏都卡死在 220px——语言下拉框
+   因此被挤到面板中间。这里用更高优先级把 Obsidian 默认的伸缩行为
+   在自己的面板里重新声明一遍，只影响 .qt-settings 内部。 */
+.qt-settings .setting-item-info {
+  min-width: 0;
+  max-width: none;
+  flex-shrink: 1;
 }
 .qt-settings .qt-exclusions-field > .setting-item-control {
   display: block;
