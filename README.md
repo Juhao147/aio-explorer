@@ -1,16 +1,16 @@
 # Aio Explorer
 
-All-in-one file explorer enhancement for Obsidian — per-folder sorting and
-drag-and-drop, focus mode, file counts, blank cleanup, and file pinning.
+Tidy up your file explorer without learning anything technical.
 
-Aio Explorer brings together several file-tree improvements into one settings
-page, so you do not have to install and configure a separate plugin for each
-one. Every module has its own master switch and can be limited to specific
-devices.
+Sort each folder its own way — by name, by date, or by dragging files exactly where you want them. Pin the folders you use most, hide the ones you don't. Focus on one folder to see only what's inside. See the file count in every folder at a glance. Find and clean up empty notes you no longer need. Give folders colors, and make folder names bigger or bolder when they're hard to read.
 
-一个插件管好整个文件树：每文件夹排序与拖拽、文件置顶、空白文件清理、文件计数，
-同时完整保留每个文件夹各自的自定义顺序与可见性。专注模式让文件树只显示当前
-文件夹及其上下级；文件夹图标七色循环，结构一目了然；标题字号与粗细独立可调。
+Everything sits in one settings page with plain-language switches — turn on only what you want. The interface is available in Chinese and English.
+
+不用懂技术，就能把文件列表整理得服服帖帖。
+
+每个文件夹各排各的：按名称、按时间，或者直接用鼠标把文件拖到想放的位置。常用的置顶，不用的藏起来。想专心看一个文件夹？聚焦它，列表只剩这一支。每个文件夹有多少文件，一眼能看到。空笔记、没用文件，顺手挑出来清掉。文件夹能上颜色，一眼认出；名字不清楚，还能调大调粗。
+
+所有功能都在同一个设置页，开关说得很明白——用哪个开哪个。界面中文、英文都有。
 
 **中文说明见下方 [中文说明](#中文说明)。** English description above.
 
