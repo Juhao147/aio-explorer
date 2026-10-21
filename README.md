@@ -8,7 +8,11 @@ page, so you do not have to install and configure a separate plugin for each
 one. Every module has its own master switch and can be limited to specific
 devices.
 
-**中文说明见下方 [中文说明](#中文说明)。**
+一个插件管好整个文件树：每文件夹排序与拖拽、文件置顶、空白文件清理、文件计数，
+同时完整保留每个文件夹各自的自定义顺序与可见性。专注模式让文件树只显示当前
+文件夹及其上下级；文件夹图标七色循环，结构一目了然；标题字号与粗细独立可调。
+
+**中文说明见下方 [中文说明](#中文说明)。** English description above.
 
 ---
 
