@@ -3,7 +3,7 @@
   "name": "Aio Explorer",
   "version": "1.0.1",
   "minAppVersion": "1.8.7",
-  "description": "Folder sorting, drag-and-drop, focus mode, file counts, cleanup, pinning | 每文件夹排序与拖拽、专注筛选、文件计数、空白清理、文件置顶",
+  "description": "Folder sorting, drag-and-drop, focus mode, file counts, cleanup, pinning — all-in-one file explorer tools | 每文件夹排序与拖拽、专注筛选、文件计数、空白清理、文件置顶，一站式文件树增强",
   "author": "Alex",
   "authorUrl": "https://github.com/Juhao147",
   "isDesktopOnly": false
