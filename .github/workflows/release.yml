@@ -1,9 +1,10 @@
 name: Release Obsidian plugin
 
 # 两种触发方式（任选其一，效果相同）：
-#   1) 推送一个版本号标签：git push origin 1.0.2  → 自动发版，零点击
+#   1) 推送一个版本号标签：git push origin 1.1.0  → 自动发版，零点击
 #   2) 仓库 Actions 页手动点 "Run workflow"        → 自动读版本号、打标签、发版
 # 附件只放官方要求的三个文件：main.js / manifest.json / styles.css
+# release 正文自动取 CHANGELOG.md 里对应版本那一节（改更新说明只改那一个文件）
 on:
   workflow_dispatch:
   push:
@@ -52,17 +53,51 @@ jobs:
           git tag "${{ steps.ver.outputs.version }}"
           git push origin "refs/tags/${{ steps.ver.outputs.version }}"
 
+      # 更新说明只维护一处：CHANGELOG.md。发版时把对应版本那一节抠出来当 release 正文。
+      # 抠不到（文件不在、或版本号忘了写进去）就退回原来的通用正文，绝不发空。
+      # 注意：下面 heredoc 的内容行必须保持在 run 块的缩进层里（10 个空格），
+      # 顶到行首会把 YAML 块标量截断，整条流水线直接读不出来。
+      - name: Build release notes from CHANGELOG.md
+        id: notes
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          notes=/tmp/notes.md
+          footer=/tmp/footer.md
+          cat > "$footer" <<'FOOTER'
+          
+          Install via Obsidian community plugin directory, or manually download
+          `main.js`, `manifest.json` and `styles.css` into
+          `<vault>/.obsidian/plugins/aio-explorer/`.
+          FOOTER
+          sed -i -e 's/[[:space:]]*$//' "$footer"
+          : > /tmp/section.md
+          if [ -f CHANGELOG.md ]; then
+            awk -v ver="$VERSION" 'BEGIN{CR=sprintf("%c",13)} { sub(CR "$", "") } /^## / { if (found) exit; split($0, a, " "); found = (a[2] == ver); next } found { print }' CHANGELOG.md > /tmp/section.md
+            sed -i -e '/./,$!d' /tmp/section.md
+          fi
+          {
+            if [ -s /tmp/section.md ]; then
+              cat /tmp/section.md
+              cat "$footer"
+            else
+              echo "::warning::CHANGELOG.md 里没有 $VERSION 这一节，release 正文退回默认说明。" >&2
+              echo "Aio Explorer $VERSION"
+              cat "$footer"
+            fi
+          } > "$notes"
+          {
+            echo "body<<NOTES_EOF"
+            cat "$notes"
+            echo "NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Create release with the three plugin files
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.ver.outputs.version }}
           name: Aio Explorer ${{ steps.ver.outputs.version }}
-          body: |
-            Aio Explorer ${{ steps.ver.outputs.version }}
-
-            Install via Obsidian community plugin directory, or manually download
-            `main.js`, `manifest.json` and `styles.css` into
-            `<vault>/.obsidian/plugins/aio-explorer/`.
+          body: ${{ steps.notes.outputs.body }}
           files: |
             main.js
             manifest.json

@@ -16,42 +16,14 @@ Everything sits in one settings page with plain-language switches — turn on on
 
 ---
 
-## What's new in 1.0.1
+## Release notes
 
-- **The language switch now covers every surface.** Settings page, right-click
-  menus, the live-status panel, the file pin view, ribbon tooltips and the
-  command palette all follow the language you pick (Follow Obsidian / 中文 /
-  English). Earlier the live-status panel and the file pin view could stay in
-  Chinese after switching to English.
-- Error notices are no longer hard-coded to Chinese.
-- **Drag and drop no longer breaks in folders that are not sorted manually.**
-  In a folder sorted by time or name, the plugin's own drag (long-press lift,
-  handle, position picker) is now used instead of falling back to the system
-  drag. Moving an item to another folder always works; rearranging inside such
-  a folder is refused with a clear explanation. New setting: *Switch to custom
-  order when dropping in* (off by default) — turn it on and dropping into a
-  time-sorted folder switches that folder to Custom order so the position you
-  picked is kept.
-- **Colorful folder icons no longer look shuffled.** The seven-color cycle now
-  follows the exact order folders appear on screen — per-folder sort modes,
-  custom manual order, pins and hidden items all count. Previously colors were
-  assigned along a different ordering rule, so folder names mixing digits,
-  Latin letters and CJK characters ended up out of sequence. Move, rename, pin,
-  hide or delete a folder and the colors re-flow with it, keeping the
-  red → orange → yellow → green → cyan → blue → purple cycle intact.
-- **Bold folder names are now adjustable.** What used to be an on/off switch
-  that jumped straight to `bold` (700) is now a five-step slider: 400 off,
-  500 subtle, 600 medium, 700 bold, 800 extra bold. 600 is Obsidian's own
-  standard emphasis weight and the recommended value, so folder names stand out
-  without the list feeling heavy. Existing settings are migrated automatically
-  (the old "on" becomes 700, exactly as before).
-- **Cleaner first run for new users.** Two defaults that used to leak the
-  author's own vault into a fresh install are gone: the excluded-directories
-  list no longer starts pre-filled with the vault's attachment folder (add it
-  any time with the *Add current attachment directory* button), and the startup
-  notice is off by default, so a newly installed plugin no longer pops a card
-  in the corner on the next restart. Both switches remain, with their previous
-  saved values untouched.
+Change history lives in [CHANGELOG.md](CHANGELOG.md) — English and 中文 side by
+side — and every [release](https://github.com/Juhao147/aio-explorer/releases)
+publishes the matching section as its release notes.
+
+更新历史统一放在 [CHANGELOG.md](CHANGELOG.md)（中英双语），每个
+[release](https://github.com/Juhao147/aio-explorer/releases) 的正文就是对应版本的更新说明。
 
 ---
 
@@ -127,6 +99,14 @@ Everything sits in one settings page with plain-language switches — turn on on
 
 - Pin notes and folders to the top of their folder, with per-folder pin groups
   and easy reordering.
+- **A slim twin of the file explorer.** The pinned view keeps the same
+  indentation, row height, icons, folder colours and order as the file
+  explorer, because both read the same rules — change one and the other follows
+  straight away. It exists so a folder buried two levels down is one click
+  away instead of a path you have to expand every time.
+- **Drag to reorder, with the same engine.** Long-press lift, ghost card, drop
+  line and release are shared with the file explorer, so both views behave
+  identically and one switch controls both.
 
 ---
 
@@ -215,14 +195,9 @@ are preserved in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 **Aio Explorer** 是一个 Obsidian 文件树增强插件，把多项常用功能整合到一个设置页里，不用为每个功能单独装插件。每个模块都有独立总开关，也可以按设备分别启用。
 
-### 1.0.1 更新内容
+### 更新说明
 
-- **语言切换真正覆盖所有界面**：设置页、右键菜单、当前生效状态面板、文件置顶面板、侧栏图标提示、命令面板，全部跟随你在「通用」里选的语言（跟随 Obsidian / 中文 / English）。此前把语言切成英文后，状态面板和文件置顶面板仍会显示中文。
-- 部分只在中文出现的报错提示，现在也按语言显示。
-- **修掉「非自定义排序文件夹里拖拽失灵」**：按创建/修改时间、按名称排序的文件夹，现在也用插件自己的拖拽（长按抬起、右侧手柄、位置选择器），不再掉回系统原生拖拽。把条目拖到别的文件夹始终可用；在同一个按规则排序的文件夹里换顺序会被明确拒绝并说明原因。新增设置「拖入时切换为自定义排序」（默认关）：打开后，把文件拖进按规则排序的文件夹会自动把该文件夹切成 Custom order，你选的位置算数。
-- **修掉「多彩文件夹颜色看着乱」**：七色循环（红→橙→黄→绿→青→蓝→紫）现在严格按文件夹在屏幕上的实际顺序发色号——每文件夹的排序模式、自定义手动顺序、置顶、隐藏全都算数。此前颜色按另一套排序规则编号，名字里数字、英文、中文混用时会整体错位。现在拖动、改名、置顶、隐藏、删除文件夹，颜色都会跟着位置顺移，循环始终完整。
-- **「文件夹字体加粗」从开关改成五档滑块**：原来一开就是写死的加粗（700），比 Obsidian 自己的标准强调（600）还重一档，不少用户觉得太粗。现在可以拖：400 不加粗、500 轻微、600 适中（推荐）、700 加粗、800 特粗。旧设置自动迁移（原来的"开"= 700，视觉不变），重置按钮一键回到推荐档 600。
-- **新用户首次安装更干净**：修掉两个"把作者自己的库带进新装插件"的默认值——①「排除的目录」不再预填当前库的附件文件夹（想加随时点「加入当前附件目录」按钮）；② 启动通知默认关闭，新用户装好插件重启后不再弹右上角提示卡片。两个开关都保留，已存档的值不受影响。
+版本历史见 [CHANGELOG.md](CHANGELOG.md)，每个 release 的正文就是对应版本的更新说明。
 
 ### 核心功能
 
@@ -238,7 +213,7 @@ are preserved in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 **文件清理** —— 找出空 Markdown 文件、未被引用的附件和空文件夹。支持包含/排除扩展名模式和文件年龄阈值，只处理真正该清理的旧文件。删除前会先给出完整清单。
 
-**文件置顶** —— 把笔记和文件夹置顶到所在文件夹的顶部，每个文件夹独立分组，可自由调整顺序。
+**文件置顶** —— 把笔记和文件夹置顶到所在文件夹的顶部，每个文件夹独立分组，可自由调整顺序。置顶面板是文件树的精简版：缩进、行高、图标、颜色、顺序都跟文件树同一套规则，一边改了另一边立刻跟上；它存在的意义是——藏在两层以下的常用文件夹，在这里一次点击就能到。拖拽排序用的也是文件树那台引擎，长按抬起、跟随卡片、插入线、松手落盘完全一致，设置里那颗开关同时管两边。
 
 ### 安装方法
 
