@@ -1088,12 +1088,12 @@ body:not(.oz-show-all-num)
 .fpv-root .fpv-selection-bar[hidden] { display: none; }
 .fpv-root .fpv-selection-bar button { padding: 2px 8px; height: auto; font-size: inherit; }
 .fpv-root .fpv-tool svg { width: var(--icon-size); height: var(--icon-size); max-width: 100%; flex-shrink: 1; stroke-width: var(--icon-stroke, 1.75px); }
-/* Keep all six actions visible as the sidebar narrows, without resize handlers. */
-@container fpv (max-width: 205px) {
+/* Keep all seven actions visible as the sidebar narrows, without resize handlers. */
+@container fpv (max-width: 235px) {
     .fpv-root .fpv-toolbar { gap: 1px; padding-inline: 4px; }
     .fpv-root button.fpv-tool { padding-inline: 3px; }
 }
-@container fpv (max-width: 175px) {
+@container fpv (max-width: 205px) {
     .fpv-root .fpv-toolbar { gap: 0; padding-inline: 2px; }
     .fpv-root button.fpv-tool { --icon-size: 16px; padding-inline: 2px; }
 }
@@ -1157,24 +1157,33 @@ body:not(.oz-show-all-num)
 .fpv-root .fpv-tree {
     flex: 1 1 0;
     min-height: 0;
-    padding: 2px 8px 10px;
+    padding: 2px var(--size-4-3, 12px) 10px;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-gutter: stable;
     overflow-anchor: none;
 }
 .fpv-root .fpv-row {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 4px;
-    min-height: 27px;
+    gap: var(--size-2-2, 4px);
+    min-height: 0;
     margin: 0;
-    padding: 3px 8px 3px calc(5px + var(--fpv-depth, 0) * var(--nav-item-children-padding-start, 16px));
+    /* ⑫ 2026-10-28 行高与原生逐字对齐。
+          原生 .tree-item-self 用的是 --nav-item-padding（上下各 4px）配 --line-height-tight（1.3），
+          13px × 1.3 + 8 = 24.9px；这边原来写死 min-height:27px、上下 3px、行高 1.5，
+          每行比原生高约 2px，缩进虽然一致，整列看着还是松。
+          现在上下留白和行高都改成读同一批变量，主题改了本视图跟着改。
+          左侧仍按层级折进 padding：原生靠 .nav-folder-children 逐层加 margin+padding，
+          本视图是平铺的一棵树，只能把同样的 16px/层 自己算出来。 */
+    padding: var(--nav-item-padding, var(--size-4-1) var(--size-4-2) var(--size-4-1) var(--size-4-6));
+    padding-inline-start: calc(var(--size-4-6) + var(--fpv-depth, 0) * (var(--nav-item-children-margin-start, 12px) + var(--nav-item-children-padding-start, 4px)));
     border-radius: var(--nav-item-radius, 4px);
     color: var(--nav-item-color, var(--text-muted));
     font-size: var(--nav-item-size, var(--font-ui-small, 13px));
     font-weight: var(--nav-item-weight, 400);
-    line-height: 1.5;
+    line-height: var(--line-height-tight, 1.3);
     cursor: var(--cursor, default);
     user-select: none;
 }
@@ -1191,7 +1200,7 @@ body:not(.oz-show-all-num)
 .fpv-root .fpv-row:focus-visible { outline: 2px solid var(--background-modifier-border-focus, var(--interactive-accent)); outline-offset: -2px; }
 .fpv-root .fpv-empty { padding: 14px 8px; color: var(--text-muted); font-size: var(--font-ui-small, 13px); line-height: 1.6; }
 .fpv-root .fpv-hint { color: var(--text-faint); padding-top: 4px; }
-.fpv-root .fpv-editor-row { padding: 2px 5px 5px calc(23px + var(--fpv-depth, 0) * 16px); }
+.fpv-root .fpv-editor-row { padding: 2px 5px 5px calc(var(--size-4-6) + var(--fpv-depth, 0) * (var(--nav-item-children-margin-start, 12px) + var(--nav-item-children-padding-start, 4px))); }
 .fpv-root input.fpv-input { width: 100%; height: 28px; font-size: var(--font-ui-small, 13px); }
 .fpv-root .fpv-input-message { padding: 4px 0 0; color: var(--text-muted); font-size: var(--font-ui-smaller, 12px); line-height: 1.4; overflow-wrap: anywhere; }
 .fpv-root .fpv-input[aria-invalid="true"] { border-color: var(--text-error); }
@@ -1256,7 +1265,7 @@ body.qt-colorful-folder .nav-folder.qt-fc7 {
    比主题基础规则多写一个 .nav-folder，保证 specificity 压过
    body:not(.file-icon-remove) ... .tree-item-icon.collapse-icon 的
    background-color: currentColor，颜色循环必然生效。 */
-body.qt-colorful-folder .workspace-leaf-content[data-type="file-explorer"] .nav-folder .tree-item-icon.collapse-icon {
+body.qt-colorful-folder .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-folder .tree-item-icon.collapse-icon {
     background-color: var(--qt-colorful-folder-color);
 }
 
@@ -1338,7 +1347,7 @@ body.qt-subfolder-inherit .nav-folder.qt-first-c7 {
      上面 7 条命中（例如层级结构特殊），至少退回主题默认文字色，
      绝不会出现「变量为空 → 背景全透明 → 图标消失」这种静默故障。 */
 body.qt-subfolder-inherit.qt-colorful-folder
-    .workspace-leaf-content[data-type="file-explorer"]
+    .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"])
     .nav-folder .tree-item-icon.collapse-icon {
     background-color: var(--wb-branch-color, currentColor) !important;
 }
@@ -1354,14 +1363,14 @@ body.qt-subfolder-inherit .nav-folder > .nav-folder-children {
    若正在使用 Border 主题，这些规则与其自带规则形状完全相同，覆盖后无差异。 */
 
 /* 文件夹展开态：容器 mask 成文件夹形状，svg 透明让底色透出 */
-body.qt-colorful-folder .workspace-leaf-content[data-type="file-explorer"] .nav-folder .tree-item-icon.collapse-icon {
+body.qt-colorful-folder .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-folder .tree-item-icon.collapse-icon {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M4 9.333 4.967 7.4a1.333 1.333 0 0 1 1.193-.733h7.173m0 0a1.333 1.333 0 0 1 1.294 1.666l-1.034 4a1.333 1.333 0 0 1-1.293 1H2.667A1.333 1.333 0 0 1 1.333 12V3.333C1.333 2.6 1.933 2 2.667 2h2.62a1.333 1.333 0 0 1 1.106.6l.547.8a1.333 1.333 0 0 0 1.107.6H12a1.333 1.333 0 0 1 1.333 1.333v1.334Z'/%3e%3c/svg%3e");
 }
-body.qt-colorful-folder .workspace-leaf-content[data-type="file-explorer"] .nav-folder .tree-item-icon.collapse-icon svg.svg-icon {
+body.qt-colorful-folder .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-folder .tree-item-icon.collapse-icon svg.svg-icon {
     color: transparent;
 }
 /* 文件夹折叠态：换成收起来的文件夹形状 */
-body.qt-colorful-folder .workspace-leaf-content[data-type="file-explorer"] .nav-folder.is-collapsed .tree-item-icon.collapse-icon {
+body.qt-colorful-folder .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-folder.is-collapsed .tree-item-icon.collapse-icon {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M2.667 13.333h10.666A1.333 1.333 0 0 0 14.667 12V5.333A1.333 1.333 0 0 0 13.333 4H8.047a1.333 1.333 0 0 1-1.107-.6l-.547-.8A1.333 1.333 0 0 0 5.287 2h-2.62a1.333 1.333 0 0 0-1.334 1.333V12c0 .733.6 1.333 1.334 1.333Z'/%3e%3c/svg%3e");
 }
 
@@ -1409,7 +1418,7 @@ body.qt-custom-icons .workspace-leaf-content:is([data-type="bookmarks"], [data-t
    而文件树从不渲染库根那一行），只保留 .nav-file-title 的文件图标。
    同理，下一条给文件夹 ::before 设 mask 的规则也一并删除。 */
 body.qt-custom-icons .workspace-leaf-content[data-type="tag"] .tree-item-self:not(.mod-collapsible):before,
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-file-title::before {
     content: " ";
     position: absolute;
     margin-left: calc(-1 * var(--size-4-5));
@@ -1427,49 +1436,49 @@ body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-fil
    而那个 ::before 本身就是误加的（见上）。库根图标交给主题的 mod-root 规则处理，
    本插件不再重复绘制，避免与 .tree-item-icon 抢位置。 */
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .tree-item-icon.collapse-icon,
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .tree-item-icon.collapse-icon,
 body.qt-custom-icons .workspace-leaf-content[data-type="bookmarks"] .tree-item-icon.collapse-icon {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M4 9.333 4.967 7.4a1.333 1.333 0 0 1 1.193-.733h7.173m0 0a1.333 1.333 0 0 1 1.294 1.666l-1.034 4a1.333 1.333 0 0 1-1.293 1H2.667A1.333 1.333 0 0 1 1.333 12V3.333C1.333 2.6 1.933 2 2.667 2h2.62a1.333 1.333 0 0 1 1.106.6l.547.8a1.333 1.333 0 0 0 1.107.6H12a1.333 1.333 0 0 1 1.333 1.333v1.334Z'/%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .is-collapsed .tree-item-icon.collapse-icon,
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .is-collapsed .tree-item-icon.collapse-icon,
 body.qt-custom-icons .workspace-leaf-content[data-type="bookmarks"] .is-collapsed .tree-item-icon.collapse-icon {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M2.667 13.333h10.666A1.333 1.333 0 0 0 14.667 12V5.333A1.333 1.333 0 0 0 13.333 4H8.047a1.333 1.333 0 0 1-1.107-.6l-.547-.8A1.333 1.333 0 0 0 5.287 2h-2.62a1.333 1.333 0 0 0-1.334 1.333V12c0 .733.6 1.333 1.334 1.333Z'/%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-file-title::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M9.667 1.333H4a1.333 1.333 0 0 0-1.333 1.334v10.666A1.333 1.333 0 0 0 4 14.667h8a1.333 1.333 0 0 0 1.333-1.334V5L9.667 1.333Z'/%3e%3cpath d='M9.333 1.333v4h4'/%3e%3c/g%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".canvas"]::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-file-title[data-path$=".canvas"]::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M6 2H2.667A.667.667 0 0 0 2 2.667v4.666c0 .369.298.667.667.667H6a.667.667 0 0 0 .667-.667V2.667A.667.667 0 0 0 6 2Zm7.333 0H10a.667.667 0 0 0-.667.667v2c0 .368.299.666.667.666h3.333A.667.667 0 0 0 14 4.667v-2A.667.667 0 0 0 13.333 2Zm0 6H10a.667.667 0 0 0-.667.667v4.666c0 .368.299.667.667.667h3.333a.667.667 0 0 0 .667-.667V8.667A.667.667 0 0 0 13.333 8ZM6 10.667H2.667a.667.667 0 0 0-.667.666v2c0 .368.298.667.667.667H6a.667.667 0 0 0 .667-.667v-2A.667.667 0 0 0 6 10.667Z'/%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".base"]::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-file-title[data-path$=".base"]::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M6 2H2.667A.667.667 0 0 0 2 2.667V6c0 .368.298.667.667.667H6A.667.667 0 0 0 6.667 6V2.667A.667.667 0 0 0 6 2Zm0 7.333H2.667A.667.667 0 0 0 2 10v3.333c0 .368.298.667.667.667H6a.667.667 0 0 0 .667-.667V10A.667.667 0 0 0 6 9.333Zm3.333-6.666H14M9.333 6H14m-4.667 4H14m-4.667 3.333H14'/%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .is-unsupported.nav-file-title::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .is-unsupported.nav-file-title::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M9.667 1.333H4a1.333 1.333 0 0 0-1.333 1.334v10.666A1.333 1.333 0 0 0 4 14.667h8a1.333 1.333 0 0 0 1.333-1.334V5L9.667 1.333Z'/%3e%3cpath d='M6.667 6.867c.133-.267.333-.534.6-.667A1.4 1.4 0 0 1 9 6.467c.2.266.333.533.333.866C9.333 8.2 8 8.667 8 8.667m0 2.666h.007'/%3e%3c/g%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .is-unsupported.nav-file-title:is([data-path$=".zip"], [data-path$=".7z"])::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .is-unsupported.nav-file-title:is([data-path$=".zip"], [data-path$=".7z"])::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M2.667 14.667v-12c0-.334.133-.667.4-.934.266-.266.6-.4.933-.4h5.667L13.333 5v8.333c0 .334-.133.667-.4.934-.266.266-.6.4-.933.4h-1.333'/%3e%3cpath d='M9.333 1.333v4h4m-6.666 9.334a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Zm0-10V4m0 4v-.667m0 4.667v-1.333'/%3e%3c/g%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".webm"]::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-file-title[data-path$=".webm"]::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M2.667 14.667H12a1.333 1.333 0 0 0 1.333-1.334V5L9.667 1.333H4a1.333 1.333 0 0 0-1.333 1.334v2'/%3e%3cpath d='M9.333 1.333v4h4M4.667 6.667 2.667 8H1.333v2.667h1.334l2 1.333V6.667Zm2.666.666c.427.534.667 1.247.667 2 0 .754-.24 1.467-.667 2'/%3e%3c/g%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title:is([data-path$=".svg"], [data-path$=".bmp"], [data-path$=".jpeg"], [data-path$=".jpg"], [data-path$=".png"], [data-path$=".gif"])::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-file-title:is([data-path$=".svg"], [data-path$=".bmp"], [data-path$=".jpeg"], [data-path$=".jpg"], [data-path$=".png"], [data-path$=".gif"])::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M12.667 2H3.333C2.597 2 2 2.597 2 3.333v9.334C2 13.403 2.597 14 3.333 14h9.334c.736 0 1.333-.597 1.333-1.333V3.333C14 2.597 13.403 2 12.667 2Z'/%3e%3cpath d='M6 7.333a1.333 1.333 0 1 0 0-2.666 1.333 1.333 0 0 0 0 2.666ZM14 10l-2.057-2.057a1.333 1.333 0 0 0-1.886 0L4 14'/%3e%3c/g%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".pdf"]::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-file-title[data-path$=".pdf"]::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333'%3e%3cpath d='M9.667 1.333H4a1.333 1.333 0 0 0-1.333 1.334v10.666A1.333 1.333 0 0 0 4 14.667h8a1.333 1.333 0 0 0 1.333-1.334V5L9.667 1.333Z'/%3e%3cpath d='M9.333 1.333v4h4m-2.666 3.334H5.333m5.334 2.666H5.333M6.667 6H5.333'/%3e%3c/g%3e%3c/svg%3e");
 }
 
-body.qt-custom-icons .workspace-leaf-content[data-type="file-explorer"] .nav-file-title[data-path$=".excalidraw.md"]::before {
+body.qt-custom-icons .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) .nav-file-title[data-path$=".excalidraw.md"]::before {
     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cg stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' clip-path='url(%23a)'%3e%3cpath d='M8 12.667 12.667 8l2 2L10 14.667l-2-2Z'/%3e%3cpath d='m12 8.667-1-5-9.667-2.334L3.667 11l5 1L12 8.667ZM1.333 1.333l5.058 5.058'/%3e%3cpath d='M7.333 8.667a1.333 1.333 0 1 0 0-2.667 1.333 1.333 0 0 0 0 2.667Z'/%3e%3c/g%3e%3cdefs%3e%3cclipPath id='a'%3e%3cpath fill='white' d='M0 0h16v16H0z'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e");
 }
 
@@ -1580,7 +1589,7 @@ body.qt-folder-bold .tree-item-self.nav-folder-title {
     cursor: progress;
 }
 
-body.qt-title-wrap .workspace-leaf-content[data-type="file-explorer"] :is(.nav-file-title-content, .nav-folder-title-content) {
+body.qt-title-wrap .workspace-leaf-content:is([data-type="file-explorer"],[data-type="000quiet-tree-note-pin"],[data-type="000folder-pin-view"]) :is(.nav-file-title-content, .nav-folder-title-content) {
     white-space: normal;
 }
 
@@ -1594,3 +1603,140 @@ body.qt-title-wrap .workspace-leaf-content[data-type="file-explorer"] :is(.nav-f
     line-height: 1.3;
     color: var(--text-normal);
 }
+/* ============================================================================
+   aio-explorer：「文件置顶」视图对齐原生外观（2026-10-28 追加）
+   ----------------------------------------------------------------------------
+   置顶视图（folder-pin-view 内嵌模块）自己一套 fpv-* DOM，原生那三个视觉模块
+   （多彩文件夹图标 / 笔记计数 / 文件类型图标）的选择器全部锚在
+   .nav-folder / .nav-folder-title / .tree-item-icon.collapse-icon 上，
+   物理上够不到它 → 看起来是个没化妆的素列表。
+
+   这里不改动上面任何一条原生规则，只针对 .fpv-root 另写一套平行样式，
+   类名与序号由 main.js 的 drawRow() 打（与原生同源：folderColorOrder / countNotes）。
+
+   退回方式：整段删掉即可，原生文件树完全不受影响。
+   ============================================================================ */
+
+/* ① 多彩文件夹图标 —— 序号类 qt-fc1~7 由 JS 打在行元素上。
+      变量名与原生同一套（--qt-colorful-folder-color），换主题同样跟随。 */
+body.qt-colorful-folder .fpv-root .fpv-row.qt-fc1 { --qt-colorful-folder-color: var(--color-red, #dd2c38); }
+body.qt-colorful-folder .fpv-root .fpv-row.qt-fc2 { --qt-colorful-folder-color: var(--color-orange, #de7417); }
+body.qt-colorful-folder .fpv-root .fpv-row.qt-fc3 { --qt-colorful-folder-color: var(--color-yellow, #c09c0c); }
+body.qt-colorful-folder .fpv-root .fpv-row.qt-fc4 { --qt-colorful-folder-color: var(--color-green, #1da51d); }
+body.qt-colorful-folder .fpv-root .fpv-row.qt-fc5 { --qt-colorful-folder-color: var(--color-cyan, #16a6ab); }
+body.qt-colorful-folder .fpv-root .fpv-row.qt-fc6 { --qt-colorful-folder-color: var(--color-blue, #1775d9); }
+body.qt-colorful-folder .fpv-root .fpv-row.qt-fc7 { --qt-colorful-folder-color: var(--color-purple, #8f47e1); }
+
+/* 置顶视图的展开箭头是 setIcon 生成的 svg（吃 currentColor），
+   不像原生那样用 mask + background-color，所以这里用 color 上色。 */
+body.qt-colorful-folder .fpv-root .fpv-row.fpv-folder > .fpv-arrow {
+    color: var(--qt-colorful-folder-color, var(--nav-collapse-icon-color, var(--text-faint)));
+}
+
+/* ② 顶部标签行（.fpv-pin）：同样上色 + 显示笔记数，与下面的树保持一致 */
+body.qt-colorful-folder .fpv-root .fpv-pin.qt-fc1 { --qt-colorful-folder-color: var(--color-red, #dd2c38); }
+body.qt-colorful-folder .fpv-root .fpv-pin.qt-fc2 { --qt-colorful-folder-color: var(--color-orange, #de7417); }
+body.qt-colorful-folder .fpv-root .fpv-pin.qt-fc3 { --qt-colorful-folder-color: var(--color-yellow, #c09c0c); }
+body.qt-colorful-folder .fpv-root .fpv-pin.qt-fc4 { --qt-colorful-folder-color: var(--color-green, #1da51d); }
+body.qt-colorful-folder .fpv-root .fpv-pin.qt-fc5 { --qt-colorful-folder-color: var(--color-cyan, #16a6ab); }
+body.qt-colorful-folder .fpv-root .fpv-pin.qt-fc6 { --qt-colorful-folder-color: var(--color-blue, #1775d9); }
+body.qt-colorful-folder .fpv-root .fpv-pin.qt-fc7 { --qt-colorful-folder-color: var(--color-purple, #8f47e1); }
+.fpv-root .fpv-pin { color: var(--qt-colorful-folder-color, inherit); }
+
+/* ③ 笔记计数 —— 与原生同一机制：数字写在 data-count 属性上，由 ::after 显示。
+      置顶视图没有 .nav-folder 外壳，原生的「展开时隐藏数字」规则命中不到这里，
+      所以置顶视图里的数字始终显示（行少、看得清，故不跟随折叠状态）。 */
+.fpv-root .fpv-row[data-count]::after,
+.fpv-root .fpv-pin[data-count]::after {
+    content: attr(data-count);
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+    font-size: calc(100% * 0.8);
+    opacity: 0.75;
+}
+.fpv-root .fpv-pin { position: relative; }
+.fpv-root .fpv-pin[data-count]::after { margin-inline-start: 6px; }
+
+/* ④ 2026-10-28 删掉「把笔记图标掰回静态定位」的覆盖。
+      上面那条从主题抄来的 .nav-file-title::before 本来就是
+      position:absolute + margin-left:-20px，和原生 .tree-item-icon 同一套写法；
+      之前为了塞进 flex 行改成 static，等于让笔记图标和文件夹图标各用一套算法，
+      上下两层就对不齐。现在行内边距换成原生那 24px，
+      两种行的图标统一走左边凹槽，这条覆盖没有存在理由了。 */
+
+/* ⑤ 2026-10-28 行首图标整套换成原生的写法，不再自己发明：
+      .tree-item-icon { position:absolute; margin-inline-start:calc(-1 * var(--size-4-5)); width:var(--size-4-4) }
+      即「图标落在 24px 左内边距挖出来的凹槽里，文字从 24px 起」。
+      文件夹和笔记因此共用同一条算式，上下层级的图标必然落在同一条斜线上。
+      形状也不再吃 lucide 的 24 viewBox（同一个 16px 盒子里它会比笔记图标粗一圈），
+      改成和原生一模一样的 16 viewBox mask + 底色。 */
+.fpv-root .fpv-row > .fpv-arrow {
+    position: absolute;
+    margin-inline-start: calc(-1 * var(--size-4-5));
+    width: var(--size-4-4);
+    height: var(--size-4-4);
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fpv-root .fpv-arrow svg { width: 16px; height: 16px; stroke-width: 1.333px; }
+/* 图标是文件夹形状，原来那条「展开时转 90°」必须作废，否则会横躺。 */
+.fpv-root .fpv-row[aria-expanded="true"] > .fpv-arrow { transform: none; }
+/* 展开态 / 折叠态两个形状，与原生 .tree-item-icon.collapse-icon 逐字同款 */
+body.qt-custom-icons .fpv-root .fpv-row.fpv-folder > .fpv-arrow {
+    background-color: currentColor;
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M4 9.333 4.967 7.4a1.333 1.333 0 0 1 1.193-.733h7.173m0 0a1.333 1.333 0 0 1 1.294 1.666l-1.034 4a1.333 1.333 0 0 1-1.293 1H2.667A1.333 1.333 0 0 1 1.333 12V3.333C1.333 2.6 1.933 2 2.667 2h2.62a1.333 1.333 0 0 1 1.106.6l.547.8a1.333 1.333 0 0 0 1.107.6H12a1.333 1.333 0 0 1 1.333 1.333v1.334Z'/%3e%3c/svg%3e");
+}
+body.qt-custom-icons .fpv-root .fpv-row.fpv-folder:not([aria-expanded="true"]) > .fpv-arrow {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.333' d='M2.667 13.333h10.666A1.333 1.333 0 0 0 14.667 12V5.333A1.333 1.333 0 0 0 13.333 4H8.047a1.333 1.333 0 0 1-1.107-.6l-.547-.8A1.333 1.333 0 0 0 5.287 2h-2.62a1.333 1.333 0 0 0-1.334 1.333V12c0 .733.6 1.333 1.334 1.333Z'/%3e%3c/svg%3e");
+}
+body.qt-custom-icons .fpv-root .fpv-row.fpv-folder > .fpv-arrow svg { color: transparent; }
+
+/* ⑥ 2026-10-28 换序的落点线 / 跟随卡片 / 手柄，现在全部用原生浏览器那三件
+      .qt-drop-line、.qt-ghost、.qt-handle —— 引擎共用，样式自然也是同一份，这里不再自绘。 */
+
+/* ⑦ 文件行本来就没有文件夹图标，那个占位盒永远用不上；
+      现在两种行的图标都出了文档流，占位盒留着也不占地方，
+      但为免「自定义图标」关掉时文件行多出一个可点中的空盒子，一律隐藏。 */
+.fpv-root .fpv-row.fpv-file > .fpv-arrow { display: none; }
+
+/* ⑧ 「标题调整」标签页剩下没打通的两条：文件夹名加粗、长名字换行。
+      字号那条本来就生效（它改的是 body 上的 --nav-item-size，本视图继承得到）。 */
+body.qt-folder-bold .fpv-root .fpv-row.fpv-folder { font-weight: var(--qt-folder-bold-weight, 600); }
+body.qt-title-wrap .fpv-root .fpv-name { white-space: normal; overflow: visible; text-overflow: clip; }
+body.qt-title-wrap .fpv-root .fpv-row { align-items: flex-start; }
+body.qt-title-wrap .fpv-root .fpv-arrow { align-self: center; }
+
+/* ⑨ 2026-10-28 工具栏与原生标题栏对齐：置顶视图这一排现在也是 7 颗 ——
+      前 5 颗与原生同名同序（新建笔记 / 新建文件夹 / 排序 / 自动定位 / 折叠展开），
+      后 2 颗就是本插件塞进原生标题栏的「专注」和「拖拽排序」，行为共用一套。
+      「搜索当前文件夹」原生那一排没有，已挪进文件夹右键菜单。 */
+
+/* 原生那条高亮写死了 .nav-buttons-container 这个前缀，本视图容器叫 .fpv-toolbar，
+   命不中，所以照搬同一份配色补一条。 */
+.fpv-root .fpv-toolbar .qt-drag-sort-icon.is-active {
+    background-color: hsla(var(--color-accent-hsl), 0.18);
+    color: var(--color-accent);
+}
+/* 拖拽排序那颗用的是插件自绘的 100x100 viewBox SVG。
+   上面 .fpv-tool svg 会把 stroke-width 改成 1.75，那是「像素」语义，
+   放到 100 单位的坐标系里只剩 0.3px 细线，几乎看不见，这里按原生取值拨回来。 */
+.fpv-root .fpv-toolbar button.qt-drag-sort-icon > svg.qt-drag-sort-svg {
+    stroke-width: 8;
+}
+
+/* ⑩ 2026-10-28 修「下一层笔记和上一层文件夹排在同一垂直线上」。
+      原来写的 --nav-item-children-padding-start 在 Obsidian 默认值只有 4px
+      （= var(--size-2-2)），所以每层只往右挪 4 个像素，看着就像没缩进。
+      原生真正的缩进是 .nav-folder-children 的 margin-start 12px + padding-start 4px = 16px，
+      这里把两步一起算进来，层级关系就和原生一模一样了；
+      主题若改了这两个变量，本视图跟着变。 */
+
+/* ⑪ 2026-10-28 专注模式 / 拖拽排序这两颗按钮以前只是「长得像」，
+      点了只改原生浏览器，置顶视图不跟。现在：
+      · 专注 —— 置顶视图按原生同一条判据（命中项本身、其后代、通往它的祖先串）过滤，
+        全被滤掉时树里给一句提示，而不是留一片空白让人以为视图坏了；
+      · 拖拽排序 —— 置顶视图不再自己另写一套，直接挂原生那台 DragController：
+        按住抬起、跟随卡片、插入线、松手落盘，与原生同一份代码同一份观感；
+        这颗开关一拨，两个视图同时接上或摘掉监听。 */
