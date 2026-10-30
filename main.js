@@ -1306,7 +1306,9 @@ var DragController = class {
     this.disposers.push(() => target.removeEventListener(type, guarded, options));
   }
   decorate(scope = this.root) {
-    this.root.dataset.qtTrigger = this.plugin.settings.trigger;
+    // 2026-10-31 修复：refresh() 会在 stopDrag() 之后再跑 decorate()，关闭开关时不能把拖拽标记贴回去。
+    if (this.dragListening) this.root.dataset.qtTrigger = this.plugin.settings.trigger;
+    else delete this.root.dataset.qtTrigger;
     const selector = ".tree-item-self[data-path]";
     const rows = scope.matches(selector) ? [scope] : scope.querySelectorAll(selector);
     for (const el of rows) {
@@ -1319,7 +1321,7 @@ var DragController = class {
       // 现在把两件事拆开：
       //   · 「这一行能不能被拖」= 只要不是排除目录/搜索中/库根，就允许（走插件机制）；
       //   · 「同一个文件夹里能不能换顺序」= 由 move() 按排序模式判断并给明确提示。
-      const allowed = !this.view.searchQuery && path !== "/" && !excluded(parent, this.plugin.settings.excluded);
+      const allowed = this.dragListening && !this.view.searchQuery && path !== "/" && !excluded(parent, this.plugin.settings.excluded);
       const name = baseName(path);
       el.classList.toggle("qt-pinned-item", !!config?.pinned?.includes(name));
       el.classList.toggle("qt-hidden-item", !!this.plugin.settings.showHidden && !!config?.hidden?.includes(name));

@@ -7,6 +7,24 @@ Each release publishes the matching section below as its release notes — this
 file is the single place to edit them.
 每次发版会自动把下面对应版本那一节作为 release 正文，改更新说明只用改这个文件。
 
+## 1.1.1 - 2026-10-31
+
+### Turning drag-and-drop off no longer blocks dragging files into a note
+
+- **Fixed.** After switching *Drag and drop* off, a background refresh could put
+  the sort markers back on the file rows with no drag engine behind them. Those
+  rows then refused to start a native drag, so dragging a file from the explorer
+  into the editor inserted nothing until Obsidian was restarted.
+- **Now.** While the switch is off, a refresh leaves the markers off. Native
+  file → editor dragging works immediately, and the 📌 pin and hidden markers
+  are unaffected.
+
+### 关闭拖拽排序后，仍能把文件拖进正文
+
+- **修复的问题**：关掉「拖拽排序」后，一次后台刷新会把这些行的排序标记又贴回去，可拖拽引擎已经停了。这些行于是拒绝发起原生拖拽，从文件列表往正文里拖文件没有反应，只能重启 Obsidian。
+- **现在**：开关关着的时候，刷新不会再贴回标记。原生「文件 → 正文」拖拽立刻可用，📌 置顶和隐藏标记不受影响。
+
+
 ## 1.1.0 - 2026-10-28
 
 ### The file pin view is now a slim twin of the file explorer
