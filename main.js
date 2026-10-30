@@ -7228,6 +7228,7 @@ var __qtPinEmbed = (() => {
   function normalizeData(raw) {
     var _a;
     const input = record(raw);
+    const placement = record(input.viewPlacement);
     const pins = paths(input.pinnedFolders);
     const active = typeof input.activeFolderPath === "string" && pins.includes(input.activeFolderPath) ? input.activeFolderPath : (_a = pins[0]) != null ? _a : null;
     const sortOrder = SORT_ORDERS.includes(input.sortOrder) ? input.sortOrder : input.sortOrder === "desc" ? "name-desc" : /* 2026-10-28 新用户默认与原生同序 */ "native-sync";
@@ -7241,6 +7242,7 @@ var __qtPinEmbed = (() => {
       subfolderOrders: /* @__PURE__ */ Object.create(null),
       language: input.language === "zh" || input.language === "en" ? input.language : "auto",
       autoReveal: input.autoReveal === true,
+      viewPlacement: { index: Number.isInteger(placement.index) && placement.index >= 0 ? placement.index : -1 },
       zones: /* @__PURE__ */ Object.create(null)
     };
     const subfolder = paths([input.activeSubfolderPath])[0];
@@ -9007,6 +9009,7 @@ var __qtPinEmbed = (() => {
       }));
       this.host.registerEvent(this.workspace.on("file-open", () => this.views().forEach((view) => view.activeFileChanged())));
       this.host.registerEvent(this.workspace.on("active-leaf-change", () => this.views().forEach((view) => view.activeFileChanged())));
+      this.host.registerEvent(this.workspace.on("layout-change", () => this.captureViewPlacement()));
       this.app.workspace.onLayoutReady(() => {
         if (this.stopping || !this.host.isPinEnabledHere()) return;
         for (const path of [...this.data.pinnedFolders]) {
@@ -9051,15 +9054,55 @@ var __qtPinEmbed = (() => {
     async activateView(reveal = true) {
       let leaf = this.workspace.getLeavesOfType(PIN_VIEW_TYPE)[0];
       if (!leaf) {
-        const created = this.workspace.getLeftLeaf(true);
-        if (!created) return;
-        leaf = created;
+        // 2026-10-31 修复：插件重新加载后，视图会开成左侧栏新分出来的第二个分栏。
+        // 改成挂到文件浏览器所在的标签组里，像普通标签页一样排在它旁边。
+        leaf = this.createPinLeaf(!reveal);
+        if (!leaf) return;
         await leaf.setViewState({ type: PIN_VIEW_TYPE, active: reveal });
       }
       if (reveal) await this.workspace.revealLeaf(leaf);
     }
+    /** 新建置顶视图标签：优先插进文件浏览器的标签组，失败时退回左侧栏新分栏。 */
+    createPinLeaf(keepFocus) {
+      const ws = this.workspace;
+      const previous = ws.activeLeaf;
+      try {
+        const explorer = ws.getLeavesOfType("file-explorer")[0];
+        const parent = explorer && explorer.parent;
+        if (parent && typeof ws.createLeafInParent === "function") {
+          const siblings = Array.isArray(parent.children) ? parent.children : [];
+          const saved = this.data.viewPlacement ? this.data.viewPlacement.index : -1;
+          const index = Number.isInteger(saved) && saved >= 0 ? Math.min(saved, siblings.length) : siblings.length;
+          const leaf = ws.createLeafInParent(parent, index);
+          if (leaf) {
+            // createLeafInParent 会给新分栏设 flex-grow，标签页用不上，清掉。
+            if (typeof leaf.setDimension === "function") leaf.setDimension(null);
+            // 新建标签可能顺手被激活，后台恢复时把用户原来的标签还回去。
+            if (keepFocus && previous && ws.activeLeaf === leaf) ws.setActiveLeaf(previous, { focus: false });
+            return leaf;
+          }
+        }
+      } catch (error) {
+        console.warn("[Aio Explorer][\u7B14\u8BB0\u7F6E\u9876] \u65E0\u6CD5\u5728\u6587\u4EF6\u6D4F\u89C8\u5668\u6807\u7B7E\u7EC4\u91CC\u65B0\u5EFA\u6807\u7B7E", error);
+      }
+      return ws.getLeftLeaf(true);
+    }
+    /** 记住图钉标签在文件浏览器标签组里的位置，下次重开插件按它还原。 */
+    captureViewPlacement() {
+      const leaf = this.workspace.getLeavesOfType(PIN_VIEW_TYPE)[0];
+      const parent = leaf && leaf.parent;
+      const explorer = this.workspace.getLeavesOfType("file-explorer")[0];
+      if (!parent || !explorer || explorer.parent !== parent || !Array.isArray(parent.children)) return;
+      const index = parent.children.indexOf(leaf);
+      if (index < 0) return;
+      const current = this.data.viewPlacement;
+      if (current && current.index === index) return;
+      this.data.viewPlacement = { index };
+      this.persist();
+    }
     /** 设备/总开关关闭时收掉所有本模块视图。 */
     closeViews() {
+      this.captureViewPlacement();
       this.views().forEach((view) => view.captureScroll());
       this.flushSave();
       for (const leaf of this.workspace.getLeavesOfType(PIN_VIEW_TYPE)) leaf.detach();
@@ -9168,6 +9211,7 @@ var __qtPinEmbed = (() => {
       });
     }
     teardown() {
+      this.captureViewPlacement();
       this.stopping = true;
       if (this.refreshTimer !== void 0) window.clearTimeout(this.refreshTimer);
       if (this.saveTimer !== void 0) window.clearTimeout(this.saveTimer);

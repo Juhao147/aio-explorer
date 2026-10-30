@@ -7,6 +7,25 @@ Each release publishes the matching section below as its release notes — this
 file is the single place to edit them.
 每次发版会自动把下面对应版本那一节作为 release 正文，改更新说明只用改这个文件。
 
+## 1.1.3 - 2026-10-31
+
+### The pinned view comes back as a tab, in the spot you left it
+
+- **Fixed.** Turning the plugin off and on again used to drop the pinned view
+  into a separate split pane under the file explorer. It now reopens as a
+  regular tab in the same row as the file explorer, search and bookmarks.
+- **It remembers its place.** The plugin saves the tab position whenever the
+  layout changes, so the view returns to the slot you dragged it to. The first
+  time there is nothing saved yet, it opens at the end of the row.
+- **No stolen focus.** Restoring the tab in the background does not switch away
+  from the note you are reading.
+
+### 图钉视图恢复成标签，并回到你放的位置
+
+- **修复**：关掉插件再打开，图钉视图以前会被塞成文件浏览器下方的一块单独分栏；现在它恢复成普通标签，和文件浏览器、搜索、书签排在同一排。
+- **会记住位置**：布局一变就记下标签所在的格子，下次重开插件直接放回你拖到的地方。第一次没有记录时，放在这一排的最后一个。
+- **不抢焦点**：后台恢复标签时，不会把你正在看的笔记切走。
+
 ## 1.1.1 - 2026-10-31
 
 ### Turning drag-and-drop off no longer blocks dragging files into a note
