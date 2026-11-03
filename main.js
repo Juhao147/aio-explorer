@@ -6181,6 +6181,47 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
   }
 
   /**
+   * 当前所有窗口里的文件树容器。
+   * 每次布局整体重建（切工作区、关掉再打开侧栏），它们都是全新的节点。
+   */
+  fileTreeContainers() {
+    const trees = [];
+    for (const doc of this.qtDocuments().keys()) {
+      if (typeof doc.querySelectorAll !== "function") continue;
+      const found = doc.querySelectorAll('.workspace-leaf-content[data-type="file-explorer"] .nav-files-container');
+      for (let i = 0; i < found.length; i++) trees.push(found[i]);
+    }
+    return trees;
+  }
+
+  /** 文件树要不要「盯着 DOM 补色号」：折叠/展开、虚拟滚动都会新造行。 */
+  fileTreeWatchNeeded() {
+    if (!this.moduleOn("iconModuleEnabled")) return false;
+    return !!this.settings.subfolderInherit || !!this.settings.iconColorfulFolder;
+  }
+
+  /**
+   * 2026-11-04 修「切换工作区后多彩文件夹图标全部变灰」。
+   *
+   * 根因（obsidian.asar 实证）：workspace.changeLayout() = clearLayout() + setLayout()，
+   * clearLayout 原话做了 leftSplit.containerEl.detach() 和 leftSplit.component.unload()，
+   * 随后重新反序列化出一个【全新的】文件树容器。我们挂在旧容器上的 MutationObserver
+   * 跟着那棵被摘下来的树一起作废，之后没有任何人再补色号 ——
+   * styles.css 的颜色规则有 currentColor 兜底，于是图标形状还在、颜色全灰。
+   *
+   * 这里的做法：比对「当前容器」和「上次挂监听时记下的那批容器」，换人了才重挂。
+   * 调用点是 syncViews()（layout-change + 2 秒轮询都会走到，且它已经在等 layoutReady），
+   * 不新增定时器，也不做全量重扫。
+   */
+  refreshFileTreeWatchers() {
+    if (!this.alive || !this.moduleOn("iconModuleEnabled")) return;
+    const tracked = this.qtFirstLevelTrees ?? [];
+    const trees = this.fileTreeContainers();
+    if (trees.length === tracked.length && trees.every((tree, index) => tree === tracked[index])) return;
+    this.watchFirstLevelFolders();
+  }
+
+  /**
    * 文件树内容会随展开/收起、虚拟滚动而增删 DOM 节点，新出现的节点没有标记类。
    * 用 MutationObserver 监听文件树的 childList 变化，节流后重打标记。
    *
@@ -6198,38 +6239,35 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
    *   等 .nav-files-container 出现后再注册真正的 observer 并补打标记。
    */
   watchFirstLevelFolders() {
-    const master = this.moduleOn("iconModuleEnabled");
-    const need = master && !!this.settings.subfolderInherit;
+    const need = this.fileTreeWatchNeeded();
     for (const watcher of this.qtFirstLevelWatchers ?? []) watcher.disconnect?.();
     this.qtFirstLevelWatchers = [];
+    const trees = this.fileTreeContainers();
+    // 记下这批容器：布局重建后它们是全新节点，靠这份记录才能发现「文件树换人了」。
+    this.qtFirstLevelTrees = trees.slice();
     if (!need) {
       this.markFirstLevelFolders();
       return;
     }
     let registered = 0;
-    for (const doc of this.qtDocuments().keys()) {
-      if (typeof doc.querySelector !== "function") continue;
-      const trees = doc.querySelectorAll('.workspace-leaf-content[data-type="file-explorer"] .nav-files-container');
-      for (let t = 0; t < trees.length; t++) {
-        const tree = trees[t];
-        if (typeof MutationObserver !== "function") break;
-        let queued = false;
-        const observer = new MutationObserver(() => {
-          if (queued) return;
-          queued = true;
-          const run = () => {
-            queued = false;
-            try { this.markFirstLevelFolders(); } catch (error) {
-              console.error("[Aio Explorer] 重打一级文件夹标记失败", error);
-            }
-          };
-          if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
-          else setTimeout(run, 100);
-        });
-        observer.observe(tree, { childList: true, subtree: true });
-        this.qtFirstLevelWatchers.push(observer);
-        registered++;
-      }
+    for (const tree of trees) {
+      if (typeof MutationObserver !== "function") break;
+      let queued = false;
+      const observer = new MutationObserver(() => {
+        if (queued) return;
+        queued = true;
+        const run = () => {
+          queued = false;
+          try { this.markFirstLevelFolders(); } catch (error) {
+            console.error("[Aio Explorer] 重打一级文件夹标记失败", error);
+          }
+        };
+        if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+        else setTimeout(run, 100);
+      });
+      observer.observe(tree, { childList: true, subtree: true });
+      this.qtFirstLevelWatchers.push(observer);
+      registered++;
     }
     this.markFirstLevelFolders();
     // ★ 关键补丁：文件树还不存在时，监听 body，等它出现再补注册 + 补打标记。
@@ -6245,36 +6283,30 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
    */
   waitForFileTree() {
     if (this.qtFileTreeWaiter) return;
-    const master = this.moduleOn("iconModuleEnabled");
-    if (!master || !this.settings.subfolderInherit) return;
-    const docs = this.qtDocuments();
-    let deadline = 0;
+    if (!this.fileTreeWatchNeeded()) return;
     const start = Date.now();
     const tryRegister = () => {
       let found = 0;
-      for (const doc of docs.keys()) {
-        if (typeof doc.querySelectorAll !== "function") continue;
-        const trees = doc.querySelectorAll('.workspace-leaf-content[data-type="file-explorer"] .nav-files-container');
-        for (let t = 0; t < trees.length; t++) {
-          found++;
-          const tree = trees[t];
-          if (typeof MutationObserver !== "function") continue;
-          let queued = false;
-          const observer = new MutationObserver(() => {
-            if (queued) return;
-            queued = true;
-            const run = () => {
-              queued = false;
-              try { this.markFirstLevelFolders(); } catch (error) {
-                console.error("[Aio Explorer] 重打一级文件夹标记失败", error);
-              }
-            };
-            if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
-            else setTimeout(run, 100);
-          });
-          observer.observe(tree, { childList: true, subtree: true });
-          this.qtFirstLevelWatchers.push(observer);
-        }
+      for (const tree of this.fileTreeContainers()) {
+        found++;
+        if (typeof MutationObserver !== "function") continue;
+        let queued = false;
+        const observer = new MutationObserver(() => {
+          if (queued) return;
+          queued = true;
+          const run = () => {
+            queued = false;
+            try { this.markFirstLevelFolders(); } catch (error) {
+              console.error("[Aio Explorer] 重打一级文件夹标记失败", error);
+            }
+          };
+          if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+          else setTimeout(run, 100);
+        });
+        observer.observe(tree, { childList: true, subtree: true });
+        this.qtFirstLevelWatchers.push(observer);
+        this.qtFirstLevelTrees = this.qtFirstLevelTrees ?? [];
+        this.qtFirstLevelTrees.push(tree);
       }
       return found;
     };
@@ -6920,6 +6952,7 @@ var QuietTree000Plugin = class extends import_obsidian4.Plugin {
 
   syncViews() {
     if (!this.alive || !this.app.workspace.layoutReady) return;
+    this.refreshFileTreeWatchers();
     const leaves = this.app.workspace.getLeavesOfType("file-explorer");
     for (const leaf of leaves) {
       if (leaf.isDeferred && !this.loadingLeaves.has(leaf)) {

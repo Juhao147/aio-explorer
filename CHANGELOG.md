@@ -7,6 +7,36 @@ Each release publishes the matching section below as its release notes — this
 file is the single place to edit them.
 每次发版会自动把下面对应版本那一节作为 release 正文，改更新说明只用改这个文件。
 
+## 1.1.4 - 2026-11-04
+
+### Coloured folder icons now survive a workspace switch
+
+- **Fixed.** Switching workspaces (for example with Workspaces Plus), or closing
+  and reopening the file explorer sidebar, turned every coloured folder icon
+  grey — and they stayed grey until Obsidian was restarted or the *Coloured
+  folder icons* toggle was flipped off and on. A workspace switch rebuilds the
+  whole sidebar, so the plugin was still watching the copy of the file list it
+  had thrown away.
+- **Now.** The plugin notices when the file list is rebuilt and re-applies the
+  colours by itself. Nothing new runs in the background: it only reacts when the
+  list has actually been replaced, so expanding folders, scrolling and startup
+  behave exactly as before.
+- **Bonus.** With *Coloured folder icons* on and *Subfolder colours follow the
+  top level* off, folders that appear later (expanding a folder, scrolling) keep
+  their colour instead of falling back to grey.
+
+### 切换工作区后，彩色文件夹图标不再变灰
+
+- **修复**：切换工作区（比如用 Workspaces Plus），或者关掉再打开文件浏览器侧栏，
+  原本彩色的文件夹图标会全部变成灰色，而且一直灰着，除非重启 Obsidian 或者把
+  「多彩文件夹图标」开关拨一下。原因是切工作区会把整个侧栏拆掉重建，插件的监听
+  还挂在被丢掉的那一份文件列表上。
+- **现在**：插件会察觉文件列表被重建，自己把颜色补回来。没有新增任何后台轮询或
+  定时器——只有在你眼前的文件列表真的换了新的一份时才动手，展开折叠、滚动、启动
+  这些日常操作和以前完全一样。
+- **附带**：开着「多彩文件夹图标」、关掉「子文件夹颜色跟随一级」时，后来才出现的
+  文件夹（展开某个文件夹、往下滚动）也会保持彩色，不再退回灰色。
+
 ## 1.1.3 - 2026-10-31
 
 ### The pinned view comes back as a tab, in the spot you left it
